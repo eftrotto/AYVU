@@ -146,6 +146,13 @@ export interface ProgressoAluno {
   itens: ProgressoItem[]
 }
 
+export interface VideoSugerido {
+  id: string
+  titulo: string
+  canal: string
+  miniatura: string
+}
+
 export interface QuizConteudo {
   pergunta: string
   alternativas: string[]

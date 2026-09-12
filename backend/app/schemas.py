@@ -181,3 +181,10 @@ class ProgressoItem(BaseModel):
 class ProgressoAlunoOut(BaseModel):
     user_id: int
     itens: list[ProgressoItem]
+
+
+class VideoSugerido(BaseModel):
+    id: str
+    titulo: str
+    canal: str
+    miniatura: str

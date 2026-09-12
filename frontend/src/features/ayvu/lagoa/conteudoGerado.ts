@@ -34,7 +34,9 @@ export interface ConteudoEntender extends Base {
 
 export interface ConteudoAssistir extends Base {
   tipo: 'assistir'
-  videos: { titulo: string; duracao: string }[]
+  // Os vídeos em si não são gerados aqui — vêm de uma busca real no
+  // YouTube (ver ayvuApi.buscarVideos), buscados direto pela
+  // TemaExploracaoPage a partir do termo.
   dicaDeAtencao: string
 }
 
@@ -101,11 +103,6 @@ export function gerarConteudoDoTema(termo: string, modo: ModoChave): ConteudoDoT
         tipo: 'assistir',
         titulo: tema,
         introducao: `Uma seleção pensada pra quem aprende melhor vendo e ouvindo sobre ${t}.`,
-        videos: [
-          { titulo: `${tema} em 5 minutos`, duracao: '5 min' },
-          { titulo: `Por dentro de ${t}`, duracao: '12 min' },
-          { titulo: `${tema}: o que ninguém te conta`, duracao: '8 min' },
-        ],
         dicaDeAtencao: `Enquanto assiste, repare em que momento ${t} deixa de ser abstrato e vira algo concreto pra você.`,
       }
 

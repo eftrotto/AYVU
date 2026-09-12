@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../../../components/layout/AppShell'
 import { Card } from '../../../components/ui/Card'
+import { ayvuApi } from '../../../lib/apiClient'
 import { gerarConteudoDoTema } from './conteudoGerado'
 import { MODOS, type ModoChave } from './modos'
 
@@ -46,20 +48,8 @@ export function TemaExploracaoPage() {
 
       {conteudo.tipo === 'assistir' && (
         <div className="flex flex-col gap-5">
-          <Secao titulo="Vídeos sugeridos" indice={0}>
-            <div className="flex flex-col gap-2.5">
-              {conteudo.videos.map((v) => (
-                <Card key={v.titulo} className="flex items-center justify-between gap-3 p-4">
-                  <span className="flex items-center gap-3 text-sm font-semibold text-text">
-                    <span aria-hidden className="text-xl">
-                      ▶️
-                    </span>
-                    {v.titulo}
-                  </span>
-                  <span className="text-xs font-bold text-text-soft">{v.duracao}</span>
-                </Card>
-              ))}
-            </div>
+          <Secao titulo="Vídeos sobre o tema" indice={0}>
+            <VideosSugeridos termo={termo} />
           </Secao>
           <Secao titulo="Enquanto assiste" indice={1}>
             <p className="rounded-2xl bg-[#fffaf3] px-4 py-3 text-sm text-text">{conteudo.dicaDeAtencao}</p>
@@ -144,6 +134,50 @@ function Secao({ titulo, indice, children }: { titulo: string; indice: number; c
       <h2 className="mb-2.5 text-xs font-bold uppercase tracking-wide text-secondary">{titulo}</h2>
       {children}
     </motion.section>
+  )
+}
+
+function VideosSugeridos({ termo }: { termo: string }) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['ayvu', 'videos', termo],
+    queryFn: () => ayvuApi.buscarVideos(termo),
+    retry: false,
+  })
+
+  if (isLoading) {
+    return <p className="text-sm text-text-soft">Buscando vídeos sobre {termo}...</p>
+  }
+
+  if (isError) {
+    return (
+      <p className="rounded-2xl bg-erro-soft px-4 py-3 text-sm text-erro">
+        Não foi possível buscar vídeos agora. Tente de novo mais tarde.
+      </p>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return <p className="text-sm text-text-soft">Nenhum vídeo encontrado pra esse termo.</p>
+  }
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      {data.map((video) => (
+        <a key={video.id} href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer">
+          <Card className="flex items-center gap-3 overflow-hidden p-3 transition-colors hover:border-accent">
+            <img
+              src={video.miniatura}
+              alt=""
+              className="h-16 w-28 flex-shrink-0 rounded-xl bg-[#fffaf3] object-cover"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-text">{video.titulo}</p>
+              <p className="truncate text-xs text-text-soft">{video.canal}</p>
+            </div>
+          </Card>
+        </a>
+      ))}
+    </div>
   )
 }
 

@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import yt_dlp
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -9,6 +10,49 @@ from ..database import get_db
 from ..deps import exigir_aluno, get_usuario_atual
 
 router = APIRouter(prefix="/ayvu", tags=["ayvu"])
+
+# Opções de busca do yt-dlp: "extract_flat" pega só os metadados da lista
+# de resultados (título, id, canal), sem abrir cada vídeo — rápido e não
+# baixa nada. Isso não passa pela API oficial do YouTube (não precisa de
+# chave), então não existe um equivalente ao safeSearch=strict aqui — é
+# a mesma lista que a busca pública do YouTube devolveria.
+_OPCOES_YTDLP = {
+    "quiet": True,
+    "no_warnings": True,
+    "extract_flat": "in_playlist",
+    "skip_download": True,
+    "noplaylist": True,
+}
+
+# Mitigação (sem API oficial não tem como ter safeSearch de verdade):
+# 1) "explicação" no fim da busca já puxa muito mais canal educacional
+#    (Nerdologia, aula, documentário) e bem menos previsão/clickbait —
+#    testado manualmente antes de entrar aqui.
+# 2) mesmo assim, filtra fora títulos com sinais claros de sensacionalismo
+#    (urgente/alerta/chocante, emoji de alarme, MUITAS MAIÚSCULAS).
+_SUFIXO_BUSCA = " explicação"
+_QUANTIDADE_BUSCADA = 10
+_QUANTIDADE_DEVOLVIDA = 5
+
+_PALAVRAS_SENSACIONALISTAS = (
+    "alerta", "urgente", "urgência", "chocante", "chocou", "imediato",
+    "cuidado", "perigo", "revelado", "segredo", "ninguém te conta",
+    "verdade oculta", "prepare-se", "última hora", "não vai acreditar",
+    "acabou de", "terrível", "tragédia", "pânico",
+)
+_EMOJIS_ALERTA = ("⚠️", "🚨", "‼️", "❗")
+
+
+def _titulo_suspeito(titulo: str) -> bool:
+    t = titulo.lower()
+    if any(p in t for p in _PALAVRAS_SENSACIONALISTAS):
+        return True
+    if any(e in titulo for e in _EMOJIS_ALERTA):
+        return True
+    letras = [c for c in titulo if c.isalpha()]
+    if len(letras) >= 12 and sum(1 for c in letras if c.isupper()) / len(letras) > 0.6:
+        return True
+    return False
 
 
 def _contagem_por_tipo(conteudos: list[models.Conteudo]) -> schemas.ContagemPorTipo:
@@ -138,3 +182,35 @@ def marcar_progresso(
     db.commit()
     db.refresh(registro)
     return registro
+
+
+@router.get("/videos", response_model=list[schemas.VideoSugerido])
+def buscar_videos(
+    termo: str,
+    _usuario: models.Usuario = Depends(get_usuario_atual),
+):
+    """
+    Busca vídeos reais no YouTube pro termo pesquisado na Lagoa (modo
+    "Quero assistir"). Cada resultado abre no próprio YouTube ao clicar —
+    não tem player embutido aqui, só a lista com título/miniatura real.
+    """
+    try:
+        with yt_dlp.YoutubeDL(_OPCOES_YTDLP) as ydl:
+            resultado = ydl.extract_info(
+                f"ytsearch{_QUANTIDADE_BUSCADA}:{termo}{_SUFIXO_BUSCA}", download=False
+            )
+    except Exception:
+        raise HTTPException(status_code=502, detail="Não foi possível buscar vídeos agora.")
+
+    entradas = (resultado or {}).get("entries") or []
+    videos = [
+        schemas.VideoSugerido(
+            id=entrada["id"],
+            titulo=entrada.get("title") or "Sem título",
+            canal=entrada.get("uploader") or entrada.get("channel") or "",
+            miniatura=f"https://i.ytimg.com/vi/{entrada['id']}/hqdefault.jpg",
+        )
+        for entrada in entradas
+        if entrada.get("id") and not _titulo_suspeito(entrada.get("title") or "")
+    ]
+    return videos[:_QUANTIDADE_DEVOLVIDA]
