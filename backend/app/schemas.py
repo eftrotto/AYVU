@@ -2,6 +2,8 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from . import models
+
 # Nota de cada competência do CASEL 5, sempre na escala Likert 1-5.
 NotaCompetencia = Field(ge=1, le=5)
 
@@ -51,3 +53,73 @@ class RekoAggregateOut(BaseModel):
     dados_suficientes: bool
     minimo_necessario: int
     medias: RekoMedias | None
+
+
+# ---------------------------------------------------------------------------
+# Ayvu
+# ---------------------------------------------------------------------------
+
+
+class TemaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    descricao: str
+    dentro_do_curriculo: bool
+
+
+class ContagemPorTipo(BaseModel):
+    video: int = 0
+    jogo: int = 0
+    leitura: int = 0
+    desafio: int = 0
+
+
+class TemaListaOut(TemaOut):
+    total_conteudos: int
+    contagem_por_tipo: ContagemPorTipo
+
+
+class ConteudoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    tema_id: int
+    tipo: models.TipoConteudo
+    titulo: str
+    corpo_ou_url: str
+    ordem_sugerida: int
+
+
+class TemaDetalheOut(TemaOut):
+    conteudos_por_tipo: dict[str, list[ConteudoOut]]
+
+
+class ProgressoCreate(BaseModel):
+    # Id local do dispositivo/navegador até existir login de verdade — ver
+    # comentário em models.ProgressoAluno e obterUsuarioIdLocal() em ayvu.js.
+    user_id: int
+    conteudo_id: int
+    concluido: bool = True
+
+
+class ProgressoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    conteudo_id: int
+    concluido: bool
+    data_ultima_interacao: datetime
+
+
+class ProgressoItem(BaseModel):
+    conteudo_id: int
+    tema_id: int
+    concluido: bool
+
+
+class ProgressoAlunoOut(BaseModel):
+    user_id: int
+    itens: list[ProgressoItem]

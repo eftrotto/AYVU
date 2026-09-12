@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ayvu · AYVU</title>
+  <link rel="stylesheet" href="css/ayvu.css">
+</head>
+<body>
+  <div class="ayvu-page">
+
+    <header class="ayvu-header">
+      <span class="ayvu-eyebrow">AYVU</span>
+      <h1>Ayvu — o que te move</h1>
+      <p class="ayvu-subtitle">
+        Escolha um tema, explore no seu ritmo. Sem ranking, sem prova, sem pressa.
+      </p>
+    </header>
+
+    <main class="ayvu-main">
+
+      <!-- Estado: grade de temas -->
+      <section id="ayvuViewTemas" class="ayvu-view">
+        <div class="ayvu-temas-grid" id="ayvuTemasGrid"></div>
+      </section>
+
+      <!-- Estado: um tema aberto, com abas por formato -->
+      <section id="ayvuViewTema" class="ayvu-view" hidden>
+        <button type="button" id="ayvuVoltarTemasBtn" class="ayvu-btn-voltar">‹ Todos os temas</button>
+
+        <div class="ayvu-tema-header">
+          <h2 id="ayvuTemaNome"></h2>
+          <p id="ayvuTemaDescricao" class="ayvu-texto-suave"></p>
+        </div>
+
+        <div class="ayvu-tabs" id="ayvuTabs"></div>
+        <div class="ayvu-conteudos-lista" id="ayvuConteudosLista"></div>
+      </section>
+
+      <!-- Estado: visualizando um conteúdo específico -->
+      <section id="ayvuViewConteudo" class="ayvu-view" hidden>
+        <button type="button" id="ayvuVoltarConteudoBtn" class="ayvu-btn-voltar">‹ Voltar pro tema</button>
+
+        <h2 id="ayvuConteudoTitulo"></h2>
+        <div id="ayvuConteudoCorpo" class="ayvu-conteudo-corpo"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="js/ayvu.js"></script>
+</body>
+</html>

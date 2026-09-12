@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import models
 from .database import Base, engine
-from .routers import reko
+from .routers import ayvu, reko
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "aluno"
 
@@ -28,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(reko.router)
+app.include_router(ayvu.router)
 
 # Serve o frontend estático (macu.html, reko.html, css/, js/...). Registrado
 # por último: as rotas de API acima têm prioridade sobre esse catch-all.
