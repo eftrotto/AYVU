@@ -101,11 +101,20 @@ export function LagoaCena() {
       )}
 
       <motion.div
-        className="relative h-full w-full"
+        className="relative mx-auto h-full w-full max-w-[1200px]"
         style={{ transformOrigin: '50% 62%' }}
         animate={{ scale: fase === 'saindo' ? 1.9 : 1 }}
         transition={{ duration: 0.75, ease: 'easeIn' }}
       >
+        {/* Logo discreta no canto — só em repouso, some junto com os botões durante o mergulho */}
+        {!emMovimento && (
+          <img
+            src="/assets/logo.png"
+            alt="AYVU"
+            className="absolute left-4 top-4 z-40 h-7 w-auto opacity-90 drop-shadow-sm"
+          />
+        )}
+
         {/* Céu */}
         <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-[#ffd9a8] via-[#f2a468] to-[#3c7681]" />
 

@@ -20,7 +20,9 @@ export function RekoPage() {
   const [indice, setIndice] = useState(0)
   const [respostas, setRespostas] = useState<Respostas>({})
   const [concluido, setConcluido] = useState(false)
-  const [avancoPendente, setAvancoPendente] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const pergunta = PERGUNTAS[indice]
+  const ultimaPergunta = indice === PERGUNTAS.length - 1
 
   const mutacao = useMutation({
     mutationFn: (payload: RekoCheckinPayload) => rekoApi.enviarCheckin(payload),
@@ -52,19 +54,20 @@ export function RekoPage() {
   }
 
   function selecionar(chave: ChaveCompetencia, valor: number) {
-    if (avancoPendente) return
-    const novasRespostas = { ...respostas, [chave]: valor }
-    setRespostas(novasRespostas)
-    setAvancoPendente(true)
+    if (enviando) return
+    setRespostas((r) => ({ ...r, [chave]: valor }))
+  }
 
-    setTimeout(() => {
-      setAvancoPendente(false)
-      if (indice < PERGUNTAS.length - 1) {
-        setIndice((i) => i + 1)
-      } else {
-        void enviar(novasRespostas)
-      }
-    }, 350)
+  function confirmar() {
+    if (enviando || respostas[pergunta.chave] === undefined) return
+
+    if (!ultimaPergunta) {
+      setIndice((i) => i + 1)
+      return
+    }
+
+    setEnviando(true)
+    void enviar(respostas)
   }
 
   if (jaFeito && !concluido) {
@@ -82,8 +85,6 @@ export function RekoPage() {
       </TelaCentro>
     )
   }
-
-  const pergunta = PERGUNTAS[indice]
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10">
@@ -129,11 +130,20 @@ export function RekoPage() {
           </div>
         </motion.div>
 
+        <Button
+          onClick={confirmar}
+          disabled={respostas[pergunta.chave] === undefined || enviando}
+          className="mt-6 w-full"
+        >
+          {enviando ? 'Enviando...' : ultimaPergunta ? 'Concluir' : 'Confirmar resposta'}
+        </Button>
+
         {indice > 0 && (
           <button
             type="button"
             onClick={() => setIndice((i) => i - 1)}
-            className="mt-6 text-sm font-bold text-text-soft hover:text-secondary"
+            disabled={enviando}
+            className="mt-4 text-sm font-bold text-text-soft hover:text-secondary disabled:opacity-40"
           >
             ‹ Voltar
           </button>
