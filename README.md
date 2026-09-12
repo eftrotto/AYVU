@@ -56,8 +56,6 @@ ayvu/
 
 - Enzo Trotto - Desenvolvedor e neurocientista em formação.
 - Gabriel Fassini - Psicólogo com interesse em IA.
-- Gabriel Firmamento - Desenvolvedor/mentor
-- Guilherme Firmeza - Desenvolvedor/mentor
 
 ---
 
