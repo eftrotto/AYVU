@@ -1,0 +1,257 @@
+/* Reko — check-in diário multi-eixo (AYVU) */
+
+:root {
+  --reko-bg: #fbf1e6;
+  --reko-card: #ffffff;
+  --reko-border: #f0e0cb;
+
+  --reko-text: #4a3c31;
+  --reko-text-soft: #8a7a6c;
+
+  --reko-accent: #e0784f;
+  --reko-accent-soft: rgba(224, 120, 79, 0.12);
+  --reko-secondary: #4f7a6b;
+
+  --reko-radius-lg: 24px;
+  --reko-radius-md: 14px;
+
+  --reko-shadow: 0 10px 30px rgba(74, 60, 49, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--reko-bg);
+  color: var(--reko-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.45;
+}
+
+.reko-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Cabeçalho ---------- */
+
+.reko-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.reko-eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--reko-secondary);
+  background: rgba(79, 122, 107, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.6rem;
+}
+
+.reko-header h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 5vw, 1.7rem);
+  color: var(--reko-text);
+}
+
+/* ---------- Card principal ---------- */
+
+.reko-card {
+  flex: 1;
+  background: var(--reko-card);
+  border: 1px solid var(--reko-border);
+  border-radius: var(--reko-radius-lg);
+  box-shadow: var(--reko-shadow);
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.reko-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.reko-view[hidden] {
+  display: none;
+}
+
+.reko-view--centro {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.reko-icone-grande {
+  font-size: 2.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.reko-view--centro h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--reko-text);
+}
+
+.reko-texto-suave {
+  margin: 0;
+  color: var(--reko-text-soft);
+  font-size: 0.95rem;
+  max-width: 32ch;
+}
+
+/* ---------- Progresso ---------- */
+
+.reko-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.75rem;
+}
+
+.reko-progress-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--reko-accent-soft);
+  overflow: hidden;
+}
+
+.reko-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--reko-accent);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.reko-progress-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--reko-text-soft);
+  white-space: nowrap;
+}
+
+/* ---------- Pergunta ---------- */
+
+.reko-question-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.reko-question-card--anim {
+  animation: reko-entrada 0.32s ease;
+}
+
+@keyframes reko-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reko-question-text {
+  margin: 0 0 1.5rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--reko-text);
+  line-height: 1.4;
+}
+
+.reko-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.reko-opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--reko-border);
+  border-radius: var(--reko-radius-md);
+  background: #fffaf3;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+.reko-opcao:hover {
+  border-color: var(--reko-accent);
+  transform: translateY(-1px);
+}
+
+.reko-opcao--selecionada {
+  border-color: var(--reko-accent);
+  background: var(--reko-accent-soft);
+}
+
+.reko-opcao-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.reko-opcao-rotulo {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--reko-text);
+}
+
+@media (min-width: 520px) {
+  .reko-options {
+    flex-direction: row;
+  }
+
+  .reko-opcao {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 0.4rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .reko-opcao-rotulo {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+/* ---------- Botões ---------- */
+
+.reko-btn-ghost {
+  align-self: flex-start;
+  margin-top: 1.25rem;
+  border: none;
+  background: none;
+  color: var(--reko-text-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.4rem 0.1rem;
+}
+
+.reko-btn-ghost:hover {
+  color: var(--reko-secondary);
+}
