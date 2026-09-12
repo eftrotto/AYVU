@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query'
 import { macuApi } from '../../../lib/apiClient'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
-import { useAuth } from '../../auth/AuthContext'
 import { Ondulacao } from './Ondulacao'
 
 type Fase = 'ocioso' | 'caindo' | 'ondulando' | 'pulando' | 'mergulhando' | 'saindo'
@@ -35,7 +34,6 @@ const PROXIMA_FASE: Partial<Record<Fase, Fase>> = {
  */
 export function LagoaCena() {
   const navigate = useNavigate()
-  const { usuario } = useAuth()
   const avatarQuery = useQuery({ queryKey: ['macu', 'avatar'], queryFn: macuApi.obterAvatar })
   const config = { ...AVATAR_PADRAO, ...avatarQuery.data?.avatar_config }
 
@@ -187,12 +185,6 @@ export function LagoaCena() {
             />
           </motion.span>
         </motion.form>
-
-        {!emMovimento && (
-          <p className="absolute left-1/2 top-[19%] w-[88vw] max-w-[460px] -translate-x-1/2 text-center text-xs font-medium text-white/80">
-            Olá, {usuario?.nome.split(' ')[0]} — pergunte qualquer coisa. Aprender aqui é mergulhar, não decorar.
-          </p>
-        )}
       </motion.div>
 
       {/* "câmera" mergulhando: cobre a cena com um azul profundo até a próxima tela entrar */}
