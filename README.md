@@ -17,7 +17,7 @@ O AYVU parte de uma pergunta diferente: em vez de disputar com essa tecnologia, 
 ### Macu - como você se expressa
 Um avatar personalizável que representa a identidade do aluno dentro da plataforma. É a camada de expressão visual e pessoal.
 
-###  Radar do Ser - como você está
+###  Reko - como você está
 Um check-in diário e leve, feito em poucos toques, que mapeia o aluno em múltiplos eixos:
 - **Emocional**: como ele está se sentindo
 - **Corporal**: energia, disposição, sono
