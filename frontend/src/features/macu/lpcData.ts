@@ -70,13 +70,20 @@ export const CORES_DE_ROUPA = [
   { valor: 'white', rotulo: 'Branco', hex: 'e5e6c7' },
 ] as const
 
+// "plain" + sobrancelha grossa + olho castanho (valores antigos) deixavam o
+// rosto quase invisível: o cabelo cobre a testa inteira e o olho escuro se
+// mistura com a sobrancelha escura (ver frame parado, linha 10 col 0 — não
+// tem boca/nariz na sprite base, só olhos+sobrancelha marcam o rosto).
+// "long" deixa a testa à mostra, sobrancelha fina não gruda no olho, e olho
+// azul contrasta bem com qualquer tom de pele — resultado bem mais legível
+// como padrão. Continua 100% customizável, isso só muda o ponto de partida.
 export const AVATAR_PADRAO: MacuAvatarConfig = {
   gender: 'male',
   skinTone: 'light',
-  hairStyle: 'plain',
+  hairStyle: 'long',
   hairColor: 'dark_brown',
-  eyebrowStyle: 'thick',
-  eyeColor: 'brown',
+  eyebrowStyle: 'thin',
+  eyeColor: 'blue',
   shirtColor: 'navy',
   pantsColor: 'brown',
   shoeColor: 'black',
