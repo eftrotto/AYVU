@@ -5,8 +5,9 @@ import { AlunoDashboard } from './features/dashboard/AlunoDashboard'
 import { ProfessorDashboard } from './features/professor/ProfessorDashboard'
 import { MacuPage } from './features/macu/MacuPage'
 import { RekoPage } from './features/reko/RekoPage'
-import { AyvuHomePage } from './features/ayvu/AyvuHomePage'
-import { AyvuTemaPage } from './features/ayvu/AyvuTemaPage'
+import { LagoaCena } from './features/ayvu/lagoa/LagoaCena'
+import { ComoEstudarPage } from './features/ayvu/lagoa/ComoEstudarPage'
+import { TemaExploracaoPage } from './features/ayvu/lagoa/TemaExploracaoPage'
 
 export default function App() {
   return (
@@ -41,15 +42,23 @@ export default function App() {
         path="/aluno/ayvu"
         element={
           <ProtectedRoute tipoEsperado="aluno">
-            <AyvuHomePage />
+            <LagoaCena />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/aluno/ayvu/:temaId"
+        path="/aluno/ayvu/estudar/:tema"
         element={
           <ProtectedRoute tipoEsperado="aluno">
-            <AyvuTemaPage />
+            <ComoEstudarPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/ayvu/explorar/:tema/:modo"
+        element={
+          <ProtectedRoute tipoEsperado="aluno">
+            <TemaExploracaoPage />
           </ProtectedRoute>
         }
       />
