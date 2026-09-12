@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -29,6 +29,20 @@ const PROXIMA_FASE: Partial<Record<Fase, Fase>> = {
   mergulhando: 'saindo',
 }
 
+// Estrelas fixas (posição/tamanho sorteados 1x, não a cada render) — só
+// aparecem de noite, de dia isso vira o brilho de sol na água mesmo.
+const ESTRELAS = Array.from({ length: 18 }, () => ({
+  x: Math.random() * 100,
+  y: Math.random() * 45,
+  tamanho: 1 + Math.random() * 1.8,
+  opacidade: 0.4 + Math.random() * 0.6,
+}))
+
+function calcularEhNoite(): boolean {
+  const hora = new Date().getHours()
+  return hora >= 18 || hora < 6
+}
+
 /**
  * Home do Ayvu — protótipo da experiência do lago.
  * Fluxo: busca -> gota cai -> ondulação -> Macu pula -> mergulha -> transição
@@ -43,6 +57,9 @@ export function LagoaCena() {
   const [termo, setTermo] = useState('')
   const [fase, setFase] = useState<Fase>('ocioso')
   const inputRef = useRef<HTMLInputElement>(null)
+  // Calculado 1x na entrada da cena — não precisa reagir a mudança de hora
+  // no meio da sessão do aluno.
+  const ehNoite = useMemo(calcularEhNoite, [])
 
   useEffect(() => {
     const duracao = DURACAO[fase]
@@ -115,17 +132,58 @@ export function LagoaCena() {
           />
         )}
 
-        {/* Céu */}
-        <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-[#ffd9a8] via-[#f2a468] to-[#3c7681]" />
+        {/* Céu — muda de dia/noite conforme o horário real do aparelho */}
+        <div
+          className={`absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b ${
+            ehNoite
+              ? 'from-[#161c3a] via-[#232f52] to-[#1c3a44]'
+              : 'from-[#ffd9a8] via-[#f2a468] to-[#3c7681]'
+          }`}
+        >
+          {ehNoite &&
+            ESTRELAS.map((estrela, i) => (
+              <span
+                key={i}
+                className="absolute rounded-full bg-white"
+                style={{
+                  left: `${estrela.x}%`,
+                  top: `${estrela.y}%`,
+                  width: estrela.tamanho,
+                  height: estrela.tamanho,
+                  opacity: estrela.opacidade,
+                }}
+              />
+            ))}
+        </div>
 
-        {/* Sol/lua discreto no horizonte */}
-        <div className="absolute left-1/2 top-[38%] h-24 w-24 -translate-x-1/2 rounded-full bg-[#ffedc2] opacity-80 blur-[2px]" />
+        {/* Sol de dia, lua de noite */}
+        {ehNoite ? (
+          <div className="absolute left-1/2 top-[38%] h-24 w-24 -translate-x-1/2 rounded-full bg-[#e7ecf5] opacity-90">
+            <span className="absolute left-[18%] top-[22%] h-3 w-3 rounded-full bg-[#c7d0e0]" />
+            <span className="absolute left-[55%] top-[45%] h-4 w-4 rounded-full bg-[#c7d0e0]" />
+            <span className="absolute left-[35%] top-[62%] h-2.5 w-2.5 rounded-full bg-[#c7d0e0]" />
+          </div>
+        ) : (
+          <div className="absolute left-1/2 top-[38%] h-24 w-24 -translate-x-1/2 rounded-full bg-[#ffedc2] opacity-80 blur-[2px]" />
+        )}
 
         {/* Água */}
-        <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-[#4f8f92] via-[#215a63] to-[#0d2c34]">
-          <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[#ffd9a8]/40 to-transparent" />
-          {/* brilho refletido do sol na água */}
-          <div className="absolute left-1/2 top-2 h-16 w-10 -translate-x-1/2 rounded-full bg-[#ffedc2]/30 blur-md" />
+        <div
+          className={`absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b ${
+            ehNoite ? 'from-[#1f4650] via-[#173f47] to-[#0d2c34]' : 'from-[#4f8f92] via-[#215a63] to-[#0d2c34]'
+          }`}
+        >
+          <div
+            className={`absolute inset-x-0 top-0 h-10 bg-gradient-to-b to-transparent ${
+              ehNoite ? 'from-[#232f52]/40' : 'from-[#ffd9a8]/40'
+            }`}
+          />
+          {/* brilho refletido do sol/lua na água */}
+          <div
+            className={`absolute left-1/2 top-2 h-16 w-10 -translate-x-1/2 rounded-full blur-md ${
+              ehNoite ? 'bg-[#e7ecf5]/20' : 'bg-[#ffedc2]/30'
+            }`}
+          />
         </div>
 
         {/* Postes de sustentação do pier, mergulhando na água */}
@@ -148,7 +206,7 @@ export function LagoaCena() {
         {macuVisivel && (
           <motion.div
             className="absolute z-[5]"
-            style={{ left: '56%', top: '35%' }}
+            style={{ right: '20%', top: '35%' }}
             animate={
               fase === 'ocioso'
                 ? { y: [0, -4, 0] }
