@@ -51,13 +51,18 @@ export interface ConteudoConversar extends Base {
   comQuemConversar: string[]
 }
 
+export interface PerguntaAutoavaliacao {
+  chave: string
+  pergunta: string
+}
+
 export interface ConteudoTestar extends Base {
   tipo: 'testar'
   // Autoavaliação, não uma prova: sem tema fixo não dá pra ter uma
-  // "resposta certa" de verdade, então o quiz mede familiaridade, não
-  // acerto/erro — a resposta não é corrigida.
-  pergunta: string
-  opcoes: string[]
+  // "resposta certa" de verdade, então o quiz mede familiaridade em 3
+  // frentes diferentes (não é 1 pergunta genérica repetida) e termina
+  // recomendando o próximo modo — não é só "nota", tem uma saída prática.
+  perguntas: PerguntaAutoavaliacao[]
 }
 
 export interface ConteudoExplorar extends Base {
@@ -139,9 +144,12 @@ export function gerarConteudoDoTema(termo: string, modo: ModoChave): ConteudoDoT
       return {
         tipo: 'testar',
         titulo: tema,
-        introducao: `Sem nota, sem certo ou errado — só pra você mesmo perceber onde está.`,
-        pergunta: `O quanto você já sabe sobre ${t}?`,
-        opcoes: ['Nunca ouvi falar', 'Já ouvi falar, mas não sei explicar', 'Sei o básico', 'Sei bem e quero ir mais fundo'],
+        introducao: `3 perguntas rápidas pra você perceber onde está com ${t} — sem nota, sem certo ou errado.`,
+        perguntas: [
+          { chave: 'origem', pergunta: `Você sabe de onde vem ${t}, ou como isso surgiu?` },
+          { chave: 'explicar', pergunta: `Você consegue explicar ${t} pra alguém em poucas frases?` },
+          { chave: 'dia_a_dia', pergunta: `Você reconhece ${t} quando aparece no seu dia a dia?` },
+        ],
       }
 
     case 'explorar':
