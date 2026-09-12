@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
 import { LoginPage } from './features/auth/LoginPage'
-import { AlunoDashboard } from './features/dashboard/AlunoDashboard'
+import { AlunoEntrada } from './features/dashboard/AlunoEntrada'
 import { ProfessorDashboard } from './features/professor/ProfessorDashboard'
 import { MacuPage } from './features/macu/MacuPage'
 import { RekoPage } from './features/reko/RekoPage'
@@ -18,7 +18,7 @@ export default function App() {
         path="/aluno"
         element={
           <ProtectedRoute tipoEsperado="aluno">
-            <AlunoDashboard />
+            <AlunoEntrada />
           </ProtectedRoute>
         }
       />

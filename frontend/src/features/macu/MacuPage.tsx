@@ -77,7 +77,7 @@ export function MacuPage() {
   }
 
   return (
-    <AppShell voltar={{ rotulo: 'Início', aoClicar: () => navigate('/aluno') }}>
+    <AppShell voltar={{ rotulo: 'Voltar pro Ayvu', aoClicar: () => navigate('/aluno/ayvu') }}>
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-text">Macu — como você se expressa</h1>
         <p className="text-sm text-text-soft">

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { macuApi } from '../../../lib/apiClient'
+import { useAuth } from '../../auth/AuthContext'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
+import { jaFezCheckinHoje } from '../../reko/rekoStorage'
 import { Ondulacao } from './Ondulacao'
 
 type Fase = 'ocioso' | 'caindo' | 'ondulando' | 'pulando' | 'mergulhando' | 'saindo'
@@ -34,6 +36,7 @@ const PROXIMA_FASE: Partial<Record<Fase, Fase>> = {
  */
 export function LagoaCena() {
   const navigate = useNavigate()
+  const { sair } = useAuth()
   const avatarQuery = useQuery({ queryKey: ['macu', 'avatar'], queryFn: macuApi.obterAvatar })
   const config = { ...AVATAR_PADRAO, ...avatarQuery.data?.avatar_config }
 
@@ -64,6 +67,12 @@ export function LagoaCena() {
     setFase('caindo')
   }
 
+  // A Lagoa só libera depois do check-in do Reko de hoje — se alguém cair
+  // aqui direto (link salvo, F5...) sem ter feito, volta pro Reko primeiro.
+  if (!jaFezCheckinHoje()) {
+    return <Navigate to="/aluno/reko" replace />
+  }
+
   const emMovimento = fase !== 'ocioso'
   // Macu some só depois de já ter mergulhado (na fase 'saindo', quando a
   // "câmera" cobre a cena) — durante 'mergulhando' ele precisa continuar
@@ -72,6 +81,25 @@ export function LagoaCena() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#12313a]">
+      {!emMovimento && (
+        <div className="absolute right-4 top-4 z-40 flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/aluno/macu')}
+            className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+          >
+            🧑‍🎨 Meu Macu
+          </button>
+          <button
+            type="button"
+            onClick={sair}
+            className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+          >
+            Sair
+          </button>
+        </div>
+      )}
+
       <motion.div
         className="relative h-full w-full"
         style={{ transformOrigin: '50% 62%' }}

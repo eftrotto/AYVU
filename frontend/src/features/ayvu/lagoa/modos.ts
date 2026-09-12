@@ -1,5 +1,7 @@
+export type ModoChave = 'entender' | 'assistir' | 'praticar' | 'conversar' | 'testar' | 'explorar' | 'criar'
+
 export interface Modo {
-  chave: string
+  chave: ModoChave
   rotulo: string
   descricao: string
   emoji: string
