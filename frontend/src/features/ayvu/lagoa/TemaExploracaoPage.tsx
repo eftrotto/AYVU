@@ -37,9 +37,15 @@ export function TemaExploracaoPage() {
           <Secao titulo="Conceitos relacionados" indice={1}>
             <div className="flex flex-wrap gap-2">
               {conteudo.conceitosRelacionados.map((c) => (
-                <span key={c} className="rounded-full border border-border bg-[#fffaf3] px-3.5 py-1.5 text-sm text-text">
+                <a
+                  key={c}
+                  href={`https://www.google.com/search?q=${encodeURIComponent(c)}&safe=active`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-border bg-[#fffaf3] px-3.5 py-1.5 text-sm text-text transition-colors hover:border-accent hover:bg-accent-soft"
+                >
                   {c}
-                </span>
+                </a>
               ))}
             </div>
           </Secao>
