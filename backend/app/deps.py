@@ -35,3 +35,9 @@ def exigir_professor(usuario: models.Usuario = Depends(get_usuario_atual)) -> mo
     if usuario.tipo != models.TipoUsuario.PROFESSOR:
         raise HTTPException(status_code=403, detail="Só professores podem acessar isso.")
     return usuario
+
+
+def exigir_aluno(usuario: models.Usuario = Depends(get_usuario_atual)) -> models.Usuario:
+    if usuario.tipo != models.TipoUsuario.ALUNO:
+        raise HTTPException(status_code=403, detail="Só alunos podem acessar isso.")
+    return usuario

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..deps import exigir_professor
+from ..deps import exigir_aluno, exigir_professor
 
 router = APIRouter(prefix="/reko", tags=["reko"])
 
@@ -17,8 +17,12 @@ MINIMO_RESPOSTAS_PARA_AGREGADO = 5
 
 
 @router.post("/checkin", response_model=schemas.RekoCheckinOut, status_code=201)
-def criar_checkin(checkin: schemas.RekoCheckinCreate, db: Session = Depends(get_db)):
-    registro = models.RekoCheckin(**checkin.model_dump())
+def criar_checkin(
+    checkin: schemas.RekoCheckinCreate,
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    registro = models.RekoCheckin(user_id=aluno.id, **checkin.model_dump())
     db.add(registro)
     try:
         db.commit()
@@ -52,7 +56,9 @@ def agregado_da_turma(
             func.avg(models.RekoCheckin.consciencia_social),
             func.avg(models.RekoCheckin.relacionamento),
             func.avg(models.RekoCheckin.decisao_responsavel),
-        ).where(models.RekoCheckin.turma_id == turma_id)
+        )
+        .join(models.Usuario, models.Usuario.id == models.RekoCheckin.user_id)
+        .where(models.Usuario.turma_id == turma_id)
     ).one()
 
     total_checkins = linha[0]

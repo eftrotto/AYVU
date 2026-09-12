@@ -1,8 +1,18 @@
 from datetime import date, datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from . import models
+
+# ---------------------------------------------------------------------------
+# Erros — formato padronizado de resposta de erro (ver main.py)
+# ---------------------------------------------------------------------------
+
+
+class ErroResponse(BaseModel):
+    detail: str
+
 
 # ---------------------------------------------------------------------------
 # Autenticação
@@ -36,18 +46,18 @@ class LoginResponse(BaseModel):
     usuario: UsuarioResponse
 
 
+# ---------------------------------------------------------------------------
+# Reko
+# ---------------------------------------------------------------------------
+
 # Nota de cada competência do CASEL 5, sempre na escala Likert 1-5.
 NotaCompetencia = Field(ge=1, le=5)
 
 
 class RekoCheckinCreate(BaseModel):
-    # Nulo até existir login/matrícula de verdade no AYVU (mesmo padrão de
-    # placeholder usado no frontend do Macu). Com user_id nulo, a trava de
-    # "um check-in por dia" no banco (ver models.RekoCheckin) não se aplica
-    # entre check-ins anônimos, já que NULL nunca é igual a NULL em SQL —
-    # a proteção real por enquanto é a checagem de data feita no frontend.
-    user_id: int | None = None
-    turma_id: int | None = None
+    # user_id NÃO vem mais do corpo da requisição — o router deriva do
+    # token de quem está logado (ver deps.get_usuario_atual), pra ninguém
+    # conseguir enviar check-in em nome de outro aluno.
     data: date
     autoconhecimento: int = NotaCompetencia
     autogestao: int = NotaCompetencia
@@ -60,8 +70,7 @@ class RekoCheckinOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    user_id: int | None
-    turma_id: int | None
+    user_id: int
     data: date
     autoconhecimento: int
     autogestao: int
@@ -85,6 +94,24 @@ class RekoAggregateOut(BaseModel):
     dados_suficientes: bool
     minimo_necessario: int
     medias: RekoMedias | None
+
+
+# ---------------------------------------------------------------------------
+# Macu
+# ---------------------------------------------------------------------------
+
+
+class MacuAvatarUpsert(BaseModel):
+    # Formato livre (decidido pelo frontend — estilos/cores do LPC) em vez
+    # de um campo por opção: evita ter que alterar o backend toda vez que
+    # o Macu ganha uma opção nova de customização.
+    avatar_config: dict[str, Any]
+
+
+class MacuAvatarOut(BaseModel):
+    user_id: int
+    avatar_config: dict[str, Any]
+    atualizado_em: datetime
 
 
 # ---------------------------------------------------------------------------
@@ -129,9 +156,8 @@ class TemaDetalheOut(TemaOut):
 
 
 class ProgressoCreate(BaseModel):
-    # Id local do dispositivo/navegador até existir login de verdade — ver
-    # comentário em models.ProgressoAluno e obterUsuarioIdLocal() em ayvu.js.
-    user_id: int
+    # user_id também não vem mais do corpo — deriva do token (mesmo motivo
+    # do Reko: antes dava pra registrar progresso em nome de outro aluno).
     conteudo_id: int
     concluido: bool = True
 

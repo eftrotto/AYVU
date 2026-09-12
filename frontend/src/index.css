@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de design do AYVU — antes duplicados em 6 arquivos CSS diferentes
+ * (um por página HTML), agora centralizados aqui. Qualquer token abaixo
+ * também vira uma classe utilitária do Tailwind (ex: --color-accent gera
+ * bg-accent, text-accent, border-accent...).
+ */
+@theme {
+  --color-bg: #fbf1e6;
+  --color-card: #ffffff;
+  --color-border: #f0e0cb;
+
+  --color-text: #4a3c31;
+  --color-text-soft: #8a7a6c;
+
+  --color-accent: #e0784f;
+  --color-accent-dark: #c4603a;
+  --color-accent-soft: #fbe4d8;
+
+  --color-secondary: #4f7a6b;
+  --color-secondary-soft: #e7eeec;
+
+  --color-certo: #4f7a6b;
+  --color-erro: #b9583e;
+  --color-erro-soft: #f7e3de;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --radius-lg: 1.375rem;
+  --radius-md: 0.875rem;
+  --radius-sm: 0.625rem;
+
+  --shadow-warm: 0 10px 30px rgba(74, 60, 49, 0.08);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    line-height: 1.45;
+  }
+
+  /* pixel art (Macu) nunca deve borrar ao escalar */
+  .pixelated {
+    image-rendering: pixelated;
+  }
+}

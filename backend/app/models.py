@@ -36,23 +36,17 @@ class RekoCheckin(Base):
 
     __tablename__ = "reko_checkins"
     __table_args__ = (
-        # no máximo um check-in por aluno por dia (reforça no banco a mesma
-        # regra que o frontend já aplica via localStorage).
+        # no máximo um check-in por aluno por dia.
         UniqueConstraint("user_id", "data", name="uq_reko_checkin_user_data"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    # Ainda não existe um sistema de contas/login no AYVU (ver placeholders
-    # de user_id no frontend), então por enquanto isso não é uma FK de
-    # verdade para uma tabela "users" — é só o identificador do aluno.
-    # Fica nulo até existir login de verdade (mesmo padrão do frontend).
-    user_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
-
-    # Necessário para o GET /reko/aggregate/{turma_id} poder filtrar por
-    # turma. Não estava na lista de campos pedida original, mas sem isso o
-    # endpoint de agregação não tem como saber a turma de cada check-in.
-    turma_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
+    # FK de verdade agora que existe login (routers/reko.py deriva isso do
+    # token via deps.get_usuario_atual — nunca aceita user_id vindo do
+    # cliente). A turma do check-in é lida via usuarios.turma_id no momento
+    # da agregação, então não é duplicada aqui.
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
     data: Mapped[date] = mapped_column(Date, index=True)
 
@@ -63,6 +57,33 @@ class RekoCheckin(Base):
     decisao_responsavel: Mapped[int] = mapped_column(Integer)
 
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+# ---------------------------------------------------------------------------
+# Macu — avatar do aluno
+# ---------------------------------------------------------------------------
+
+
+class MacuAvatar(Base):
+    """
+    Configuração salva do avatar de corpo inteiro do aluno (sprites LPC — ver
+    frontend/src/features/macu). Um registro por aluno; salvar de novo
+    substitui o anterior (upsert em routers/macu.py).
+    """
+
+    __tablename__ = "macu_avatares"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), unique=True, index=True)
+
+    # Guardado como JSON serializado (texto) em vez de uma coluna por campo:
+    # o formato do avatar é decidido pelo frontend (estilos/cores do LPC) e
+    # pode ganhar novas opções sem precisar de migração de banco.
+    avatar_config: Mapped[str] = mapped_column(Text)
+
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -126,15 +147,8 @@ class ProgressoAluno(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    # Diferente do user_id do Reko/Macu (que fica nulo até existir login de
-    # verdade), aqui precisamos conseguir buscar o progresso DE VOLTA por
-    # aluno (GET /ayvu/progresso/{user_id}) para montar os indicadores de
-    # progresso na tela inicial — um valor sempre nulo faria isso não fazer
-    # sentido (misturaria o progresso de alunos diferentes). Por enquanto,
-    # até existir login, o frontend gera e guarda um id local por
-    # navegador/dispositivo (ver obterUsuarioIdLocal() em js/ayvu.js) só
-    # para manter o progresso separado por aluno nesta demo.
-    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    # FK de verdade agora que existe login (ver nota em RekoCheckin.user_id).
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
     conteudo_id: Mapped[int] = mapped_column(ForeignKey("conteudos.id"), index=True)
     concluido: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -146,17 +160,17 @@ class ProgressoAluno(Base):
 
     # GANCHO FUTURO — interesses predominantes para a equipe pedagógica
     #
-    # Cruzando `progresso_aluno` com `conteudos`/`temas`, dá pra calcular
-    # quais temas mais prendem a atenção de uma turma (ex.: % de conteúdos
-    # concluídos por tema, agregado pela turma). Igual ao Reko, isso deve
-    # SEMPRE ser agregado por turma, nunca devolver o detalhe de um aluno
-    # específico para o professor.
+    # Cruzando `progresso_aluno` com `conteudos`/`temas`/`usuarios.turma_id`,
+    # dá pra calcular quais temas mais prendem a atenção de uma turma (ex.:
+    # % de conteúdos concluídos por tema, agregado pela turma). Igual ao
+    # Reko, isso deve SEMPRE ser agregado por turma, nunca devolver o
+    # detalhe de um aluno específico para o professor.
     #
-    # Esboço de como isso entraria (NÃO implementado ainda — precisa antes
-    # de um jeito de saber a turma de cada aluno, que ainda não existe):
+    # Esboço de como isso entraria (NÃO implementado ainda):
     #
-    #   GET /ayvu/interesses/{turma_id}
-    #   -> agrupar progresso_aluno dos alunos da turma por tema_id,
-    #      contar quantos concluíram pelo menos 1 conteúdo daquele tema,
-    #      devolver só a lista de temas ordenada por popularidade (sem
-    #      nomes de aluno nem contagem individual).
+    #   GET /ayvu/interesses/{turma_id}  (só professor, mesmo padrão do Reko)
+    #   -> agrupar progresso_aluno dos alunos da turma (join por
+    #      usuarios.turma_id) por tema_id, contar quantos concluíram pelo
+    #      menos 1 conteúdo daquele tema, devolver só a lista de temas
+    #      ordenada por popularidade (sem nomes de aluno nem contagem
+    #      individual).
