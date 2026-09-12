@@ -1,0 +1,83 @@
+/* Painel do professor (AYVU) — placeholder */
+
+:root {
+  --dash-bg: #fbf1e6;
+  --dash-card: #ffffff;
+  --dash-border: #f0e0cb;
+
+  --dash-text: #4a3c31;
+  --dash-text-soft: #8a7a6c;
+
+  --dash-accent: #e0784f;
+  --dash-secondary: #4f7a6b;
+  --dash-secondary-soft: rgba(79, 122, 107, 0.1);
+
+  --dash-radius-lg: 22px;
+  --dash-shadow: 0 10px 30px rgba(74, 60, 49, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--dash-bg);
+  color: var(--dash-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.dashboard-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  margin-bottom: 0.6rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.dashboard-btn-sair {
+  flex: none;
+  border: 1.5px solid var(--dash-border);
+  background: var(--dash-card);
+  color: var(--dash-text-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dashboard-btn-sair:hover {
+  border-color: var(--dash-accent);
+  color: var(--dash-accent);
+}
+
+.dashboard-card {
+  background: var(--dash-card);
+  border: 1px solid var(--dash-border);
+  border-radius: var(--dash-radius-lg);
+  box-shadow: var(--dash-shadow);
+  padding: 1.75rem;
+  color: var(--dash-text-soft);
+  font-size: 0.95rem;
+}

@@ -1,8 +1,40 @@
 from datetime import date, datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from . import models
+
+# ---------------------------------------------------------------------------
+# Autenticação
+# ---------------------------------------------------------------------------
+
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: EmailStr
+    senha: str = Field(min_length=6)
+    tipo: models.TipoUsuario
+    turma_id: int | None = None
+
+
+class UsuarioLogin(BaseModel):
+    email: EmailStr
+    senha: str
+
+
+class UsuarioResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    tipo: models.TipoUsuario
+    turma_id: int | None
+
+
+class LoginResponse(BaseModel):
+    token: str
+    usuario: UsuarioResponse
+
 
 # Nota de cada competência do CASEL 5, sempre na escala Likert 1-5.
 NotaCompetencia = Field(ge=1, le=5)

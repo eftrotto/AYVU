@@ -7,9 +7,12 @@ from fastapi.staticfiles import StaticFiles
 
 from . import models
 from .database import Base, engine
-from .routers import ayvu, reko
+from .routers import auth, ayvu, reko
 
-FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "aluno"
+# Raiz de TODO o frontend (login.html, aluno/, professor/, css/ e js/
+# compartilhados) — antes só "frontend/aluno" era servido; agora que existe
+# tela de login e área do professor, a raiz inteira precisa estar acessível.
+FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
 
 
 @asynccontextmanager
@@ -27,10 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(reko.router)
 app.include_router(ayvu.router)
 
-# Serve o frontend estático (macu.html, reko.html, css/, js/...). Registrado
-# por último: as rotas de API acima têm prioridade sobre esse catch-all.
+# Serve o frontend estático (login.html, aluno/, professor/, css/, js/...).
+# Registrado por último: as rotas de API acima têm prioridade sobre esse catch-all.
 if FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

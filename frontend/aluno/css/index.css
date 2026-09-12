@@ -1,0 +1,119 @@
+/* Tela inicial do aluno (AYVU) — atalho pros 3 pilares */
+
+:root {
+  --inicio-bg: #fbf1e6;
+  --inicio-card: #ffffff;
+  --inicio-border: #f0e0cb;
+
+  --inicio-text: #4a3c31;
+  --inicio-text-soft: #8a7a6c;
+
+  --inicio-accent: #e0784f;
+  --inicio-secondary: #4f7a6b;
+  --inicio-secondary-soft: rgba(79, 122, 107, 0.1);
+
+  --inicio-radius-lg: 22px;
+  --inicio-shadow: 0 10px 30px rgba(74, 60, 49, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--inicio-bg);
+  color: var(--inicio-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.45;
+}
+
+.inicio-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+.inicio-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.inicio-logo {
+  display: block;
+  height: 32px;
+  width: auto;
+  margin-bottom: 0.6rem;
+}
+
+.inicio-header h1 {
+  margin: 0;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.inicio-btn-sair {
+  flex: none;
+  border: 1.5px solid var(--inicio-border);
+  background: var(--inicio-card);
+  color: var(--inicio-text-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.inicio-btn-sair:hover {
+  border-color: var(--inicio-accent);
+  color: var(--inicio-accent);
+}
+
+.inicio-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .inicio-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.inicio-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  text-decoration: none;
+  color: inherit;
+  background: var(--inicio-card);
+  border: 1px solid var(--inicio-border);
+  border-radius: var(--inicio-radius-lg);
+  box-shadow: var(--inicio-shadow);
+  padding: 1.75rem 1.5rem;
+  transition: transform 0.12s ease;
+}
+
+.inicio-card:hover {
+  transform: translateY(-2px);
+}
+
+.inicio-card-emoji {
+  font-size: 2rem;
+}
+
+.inicio-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.inicio-card p {
+  margin: 0;
+  color: var(--inicio-text-soft);
+  font-size: 0.9rem;
+}

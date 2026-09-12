@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..deps import exigir_professor
 
 router = APIRouter(prefix="/reko", tags=["reko"])
 
@@ -32,11 +33,16 @@ def criar_checkin(checkin: schemas.RekoCheckinCreate, db: Session = Depends(get_
 
 
 @router.get("/aggregate/{turma_id}", response_model=schemas.RekoAggregateOut)
-def agregado_da_turma(turma_id: int, db: Session = Depends(get_db)):
+def agregado_da_turma(
+    turma_id: int,
+    db: Session = Depends(get_db),
+    _professor: models.Usuario = Depends(exigir_professor),
+):
     """
     Médias agregadas da turma inteira — NUNCA um endpoint por aluno.
     Não existe (e não deve existir) uma rota que devolva o check-in de um
-    único aluno para o professor; só o agregado aqui.
+    único aluno para o professor; só o agregado aqui. Só professores
+    autenticados conseguem chamar essa rota (ver deps.exigir_professor).
     """
     linha = db.execute(
         select(

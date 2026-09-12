@@ -7,6 +7,30 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 
+class TipoUsuario(str, enum.Enum):
+    ALUNO = "aluno"
+    PROFESSOR = "professor"
+
+
+class Usuario(Base):
+    """Conta de login — aluno ou professor. Ver security.py para o hash de senha."""
+
+    __tablename__ = "usuarios"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    nome: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    senha_hash: Mapped[str] = mapped_column(String(255))
+    tipo: Mapped[TipoUsuario] = mapped_column(Enum(TipoUsuario), index=True)
+
+    # Nulo pra professores sem turma fixa (ex.: coordenação). Alunos
+    # normalmente têm turma, mas isso não é reforçado aqui a nível de banco
+    # pra manter o cadastro simples nesta etapa.
+    turma_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
+
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class RekoCheckin(Base):
     """Um check-in diário do Reko (CASEL 5), 1 nota (1-5) por competência."""
 

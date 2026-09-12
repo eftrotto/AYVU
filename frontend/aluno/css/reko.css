@@ -46,17 +46,11 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.reko-eyebrow {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--reko-secondary);
-  background: rgba(79, 122, 107, 0.1);
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-  margin-bottom: 0.6rem;
+.reko-logo {
+  display: block;
+  height: 34px;
+  width: auto;
+  margin: 0 auto 0.6rem;
 }
 
 .reko-header h1 {
