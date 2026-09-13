@@ -129,7 +129,7 @@ def progresso_do_aluno(
     token, nunca de um id arbitrário na URL) — não existe (e não deve
     existir) uma rota que exponha o progresso de um aluno pra outra
     pessoa. Ver o gancho de "interesses predominantes" comentado em
-    models.py pra quando isso precisar virar agregado por turma.
+    models.py pra quando isso precisar virar agregado por Oka.
     """
     linhas = db.execute(
         select(models.ProgressoAluno, models.Conteudo.tema_id)
@@ -193,7 +193,7 @@ def registrar_pesquisa(
     """
     Registra um termo pesquisado na Lagoa (chamado a cada mergulho). Alimenta
     a lista de "temas pesquisados" que o professor vê por aluno em
-    routers/turmas.py — ao contrário do Reko, aqui a visibilidade individual
+    routers/okas.py — ao contrário do Reko, aqui a visibilidade individual
     foi um pedido explícito, não agregada.
     """
     registro = models.PesquisaAyvu(user_id=aluno.id, termo=entrada.termo.strip())

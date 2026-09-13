@@ -23,20 +23,20 @@ class Usuario(Base):
     senha_hash: Mapped[str] = mapped_column(String(255))
     tipo: Mapped[TipoUsuario] = mapped_column(Enum(TipoUsuario), index=True)
 
-    # Nulo até o aluno entrar numa turma com o código de convite (ver Turma
-    # abaixo) ou pra professores sem turma fixa (ex.: coordenação).
-    turma_id: Mapped[int | None] = mapped_column(ForeignKey("turmas.id"), index=True, nullable=True)
+    # Nulo até o aluno entrar numa Oka com o código de convite (ver Oka
+    # abaixo) ou pra professores sem Oka fixa (ex.: coordenação).
+    oka_id: Mapped[int | None] = mapped_column(ForeignKey("okas.id"), index=True, nullable=True)
 
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
-class Turma(Base):
+class Oka(Base):
     """
-    A "ilha" de um professor — os alunos entram usando o código de convite
-    (ver routers/turmas.py). Um professor pode ter várias turmas.
+    A "ilha"/turma de um professor — os alunos entram usando o código de
+    convite (ver routers/okas.py). Um professor pode ter várias Okas.
     """
 
-    __tablename__ = "turmas"
+    __tablename__ = "okas"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     nome: Mapped[str] = mapped_column(String(120))
@@ -58,7 +58,7 @@ class RekoCheckin(Base):
 
     # FK de verdade agora que existe login (routers/reko.py deriva isso do
     # token via deps.get_usuario_atual — nunca aceita user_id vindo do
-    # cliente). A turma do check-in é lida via usuarios.turma_id no momento
+    # cliente). A Oka do check-in é lida via usuarios.oka_id no momento
     # da agregação, então não é duplicada aqui.
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
@@ -154,7 +154,7 @@ class Conteudo(Base):
 class PesquisaAyvu(Base):
     """
     Um termo pesquisado pelo aluno na Lagoa do Ayvu (cada mergulho gera um
-    registro). Alimenta a visão do professor por aluno em routers/turmas.py
+    registro). Alimenta a visão do professor por aluno em routers/okas.py
     — aqui, ao contrário do Reko, o pedido foi visibilidade individual
     mesmo, não agregada.
     """
@@ -169,7 +169,7 @@ class PesquisaAyvu(Base):
 
 class Nota(Base):
     """
-    Uma nota lançada pelo professor pra um aluno da turma dele (o "boletim").
+    Uma nota lançada pelo professor pra um aluno da Oka dele (o "boletim").
     Diferente do Reko: aqui é sempre individual mesmo, visível tanto pro
     professor que lançou quanto pro próprio aluno.
     """
@@ -180,8 +180,8 @@ class Nota(Base):
     aluno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
     # Guardado junto pra não precisar de outro join na hora de checar se o
-    # professor logado é dono da turma desse boletim (ver routers/notas.py).
-    turma_id: Mapped[int] = mapped_column(ForeignKey("turmas.id"), index=True)
+    # professor logado é dono da Oka desse boletim (ver routers/notas.py).
+    oka_id: Mapped[int] = mapped_column(ForeignKey("okas.id"), index=True)
 
     disciplina: Mapped[str] = mapped_column(String(100))
     prova: Mapped[str] = mapped_column(String(150))
@@ -214,17 +214,17 @@ class ProgressoAluno(Base):
 
     # GANCHO FUTURO — interesses predominantes para a equipe pedagógica
     #
-    # Cruzando `progresso_aluno` com `conteudos`/`temas`/`usuarios.turma_id`,
-    # dá pra calcular quais temas mais prendem a atenção de uma turma (ex.:
-    # % de conteúdos concluídos por tema, agregado pela turma). Igual ao
-    # Reko, isso deve SEMPRE ser agregado por turma, nunca devolver o
+    # Cruzando `progresso_aluno` com `conteudos`/`temas`/`usuarios.oka_id`,
+    # dá pra calcular quais temas mais prendem a atenção de uma Oka (ex.:
+    # % de conteúdos concluídos por tema, agregado pela Oka). Igual ao
+    # Reko, isso deve SEMPRE ser agregado por Oka, nunca devolver o
     # detalhe de um aluno específico para o professor.
     #
     # Esboço de como isso entraria (NÃO implementado ainda):
     #
-    #   GET /ayvu/interesses/{turma_id}  (só professor, mesmo padrão do Reko)
-    #   -> agrupar progresso_aluno dos alunos da turma (join por
-    #      usuarios.turma_id) por tema_id, contar quantos concluíram pelo
+    #   GET /ayvu/interesses/{oka_id}  (só professor, mesmo padrão do Reko)
+    #   -> agrupar progresso_aluno dos alunos da Oka (join por
+    #      usuarios.oka_id) por tema_id, contar quantos concluíram pelo
     #      menos 1 conteúdo daquele tema, devolver só a lista de temas
     #      ordenada por popularidade (sem nomes de aluno nem contagem
     #      individual).

@@ -22,7 +22,7 @@ def cadastrar(dados: schemas.UsuarioCreate, db: Session = Depends(get_db)):
         email=dados.email,
         senha_hash=security.gerar_hash_senha(dados.senha),
         tipo=dados.tipo,
-        turma_id=dados.turma_id,
+        oka_id=dados.oka_id,
     )
     db.add(usuario)
     db.commit()

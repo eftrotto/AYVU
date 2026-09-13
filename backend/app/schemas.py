@@ -24,7 +24,7 @@ class UsuarioCreate(BaseModel):
     email: EmailStr
     senha: str = Field(min_length=6)
     tipo: models.TipoUsuario
-    turma_id: int | None = None
+    oka_id: int | None = None
 
 
 class UsuarioLogin(BaseModel):
@@ -38,7 +38,7 @@ class UsuarioResponse(BaseModel):
     id: int
     nome: str
     tipo: models.TipoUsuario
-    turma_id: int | None
+    oka_id: int | None
 
 
 class LoginResponse(BaseModel):
@@ -89,7 +89,7 @@ class RekoMedias(BaseModel):
 
 
 class RekoAggregateOut(BaseModel):
-    turma_id: int
+    oka_id: int
     total_checkins: int
     dados_suficientes: bool
     minimo_necessario: int
@@ -196,15 +196,15 @@ class PesquisaCreate(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Turmas — a "ilha" do professor
+# Okas — a "ilha"/turma do professor
 # ---------------------------------------------------------------------------
 
 
-class TurmaCreate(BaseModel):
+class OkaCreate(BaseModel):
     nome: str = Field(min_length=1, max_length=120)
 
 
-class TurmaOut(BaseModel):
+class OkaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -213,29 +213,29 @@ class TurmaOut(BaseModel):
     criado_em: datetime
 
 
-class EntrarTurmaPayload(BaseModel):
+class EntrarOkaPayload(BaseModel):
     codigo: str = Field(min_length=1, max_length=10)
 
 
-class EntrarTurmaOut(BaseModel):
-    turma_id: int
-    nome_turma: str
+class EntrarOkaOut(BaseModel):
+    oka_id: int
+    nome_oka: str
 
 
-class AlunoDaTurmaOut(BaseModel):
+class AlunoDaOkaOut(BaseModel):
     id: int
     nome: str
     # 'atencao' | 'neutro' | 'bem' | 'sem_dados' — nunca a nota exata do
-    # Reko, só um sinal. Ver routers/turmas.py pra regra de cálculo.
+    # Reko, só um sinal. Ver routers/okas.py pra regra de cálculo.
     sinal_bem_estar: str
     frase_bem_estar: str
     temas_pesquisados: list[str]
 
 
-class ColegaDaTurmaOut(BaseModel):
-    # Oka — visão do aluno dos colegas da própria ilha. De propósito NÃO
-    # tem temas_pesquisados nem sinal_bem_estar aqui: entre alunos, só
-    # nome + Macu, nada do que só o professor pode ver.
+class ColegaDaOkaOut(BaseModel):
+    # Visão do aluno dos colegas da própria Oka. De propósito NÃO tem
+    # temas_pesquisados nem sinal_bem_estar aqui: entre alunos, só nome +
+    # Macu, nada do que só o professor pode ver.
     id: int
     nome: str
     avatar_config: dict[str, Any]

@@ -9,7 +9,7 @@ from ..deps import exigir_aluno, exigir_professor
 
 router = APIRouter(prefix="/reko", tags=["reko"])
 
-# Abaixo desse número de check-ins na turma, não devolvemos médias: com
+# Abaixo desse número de check-ins na Oka, não devolvemos médias: com
 # poucos alunos, uma "média" se aproxima demais da nota de uma pessoa só,
 # o que fere o princípio do Reko de nunca expor dado individual ao
 # professor (ver README do projeto).
@@ -36,14 +36,14 @@ def criar_checkin(
     return registro
 
 
-@router.get("/aggregate/{turma_id}", response_model=schemas.RekoAggregateOut)
-def agregado_da_turma(
-    turma_id: int,
+@router.get("/aggregate/{oka_id}", response_model=schemas.RekoAggregateOut)
+def agregado_da_oka(
+    oka_id: int,
     db: Session = Depends(get_db),
     _professor: models.Usuario = Depends(exigir_professor),
 ):
     """
-    Médias agregadas da turma inteira — NUNCA um endpoint por aluno.
+    Médias agregadas da Oka inteira — NUNCA um endpoint por aluno.
     Não existe (e não deve existir) uma rota que devolva o check-in de um
     único aluno para o professor; só o agregado aqui. Só professores
     autenticados conseguem chamar essa rota (ver deps.exigir_professor).
@@ -58,7 +58,7 @@ def agregado_da_turma(
             func.avg(models.RekoCheckin.decisao_responsavel),
         )
         .join(models.Usuario, models.Usuario.id == models.RekoCheckin.user_id)
-        .where(models.Usuario.turma_id == turma_id)
+        .where(models.Usuario.oka_id == oka_id)
     ).one()
 
     total_checkins = linha[0]
@@ -75,7 +75,7 @@ def agregado_da_turma(
         )
 
     return schemas.RekoAggregateOut(
-        turma_id=turma_id,
+        oka_id=oka_id,
         total_checkins=total_checkins,
         dados_suficientes=dados_suficientes,
         minimo_necessario=MINIMO_RESPOSTAS_PARA_AGREGADO,

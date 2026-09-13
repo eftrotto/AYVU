@@ -9,19 +9,19 @@ from ..deps import exigir_aluno, exigir_professor
 router = APIRouter(prefix="/notas", tags=["notas"])
 
 
-def _turma_do_professor_ou_404(db: Session, aluno_id: int, professor_id: int) -> models.Usuario:
+def _oka_do_professor_ou_404(db: Session, aluno_id: int, professor_id: int) -> models.Usuario:
     """
-    Confere que `aluno_id` existe, está numa turma, e que essa turma é do
-    professor logado — mesmo padrão de posse usado em turmas.py. Devolve o
+    Confere que `aluno_id` existe, está numa Oka, e que essa Oka é do
+    professor logado — mesmo padrão de posse usado em okas.py. Devolve o
     próprio Usuario (aluno) se tudo bater.
     """
     aluno = db.get(models.Usuario, aluno_id)
-    if aluno is None or aluno.tipo != models.TipoUsuario.ALUNO or aluno.turma_id is None:
+    if aluno is None or aluno.tipo != models.TipoUsuario.ALUNO or aluno.oka_id is None:
         raise HTTPException(status_code=404, detail="Aluno não encontrado.")
 
-    turma = db.get(models.Turma, aluno.turma_id)
-    if turma is None or turma.professor_id != professor_id:
-        raise HTTPException(status_code=403, detail="Esse aluno não é da sua turma.")
+    oka = db.get(models.Oka, aluno.oka_id)
+    if oka is None or oka.professor_id != professor_id:
+        raise HTTPException(status_code=403, detail="Esse aluno não é da sua Oka.")
 
     return aluno
 
@@ -33,10 +33,10 @@ def lancar_nota(
     db: Session = Depends(get_db),
     professor: models.Usuario = Depends(exigir_professor),
 ):
-    """Professor lança uma nota de prova pro boletim de um aluno da própria turma."""
-    aluno = _turma_do_professor_ou_404(db, aluno_id, professor.id)
+    """Professor lança uma nota de prova pro boletim de um aluno da própria Oka."""
+    aluno = _oka_do_professor_ou_404(db, aluno_id, professor.id)
 
-    nota = models.Nota(aluno_id=aluno.id, turma_id=aluno.turma_id, **dados.model_dump())
+    nota = models.Nota(aluno_id=aluno.id, oka_id=aluno.oka_id, **dados.model_dump())
     db.add(nota)
     db.commit()
     db.refresh(nota)
@@ -49,8 +49,8 @@ def notas_do_aluno(
     db: Session = Depends(get_db),
     professor: models.Usuario = Depends(exigir_professor),
 ):
-    """Boletim de um aluno específico, só pro professor dono da turma dele."""
-    _turma_do_professor_ou_404(db, aluno_id, professor.id)
+    """Boletim de um aluno específico, só pro professor dono da Oka dele."""
+    _oka_do_professor_ou_404(db, aluno_id, professor.id)
 
     return (
         db.execute(

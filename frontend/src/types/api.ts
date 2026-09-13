@@ -10,7 +10,7 @@ export interface Usuario {
   id: number
   nome: string
   tipo: TipoUsuario
-  turma_id: number | null
+  oka_id: number | null
 }
 
 export interface LoginResponse {
@@ -23,7 +23,7 @@ export interface CadastroPayload {
   email: string
   senha: string
   tipo: TipoUsuario
-  turma_id?: number | null
+  oka_id?: number | null
 }
 
 export interface LoginPayload {
@@ -59,7 +59,7 @@ export interface RekoMedias {
 }
 
 export interface RekoAggregate {
-  turma_id: number
+  oka_id: number
   total_checkins: number
   dados_suficientes: boolean
   minimo_necessario: number
@@ -162,24 +162,24 @@ export interface QuizConteudo {
 }
 
 // ---------------------------------------------------------------------------
-// Turmas — a "ilha" do professor
+// Okas — a "ilha"/turma do professor
 // ---------------------------------------------------------------------------
 
-export interface Turma {
+export interface Oka {
   id: number
   nome: string
   codigo: string
   criado_em: string
 }
 
-export interface EntrarTurmaResponse {
-  turma_id: number
-  nome_turma: string
+export interface EntrarOkaResponse {
+  oka_id: number
+  nome_oka: string
 }
 
 export type SinalBemEstar = 'atencao' | 'neutro' | 'bem' | 'sem_dados'
 
-export interface AlunoDaTurma {
+export interface AlunoDaOka {
   id: number
   nome: string
   sinal_bem_estar: SinalBemEstar
@@ -187,9 +187,9 @@ export interface AlunoDaTurma {
   temas_pesquisados: string[]
 }
 
-// Oka — colegas de ilha do próprio aluno (sem sinal_bem_estar/temas: isso é
-// só pro professor, ver AlunoDaTurma).
-export interface ColegaDaTurma {
+// Colegas de Oka do próprio aluno (sem sinal_bem_estar/temas: isso é só pro
+// professor, ver AlunoDaOka).
+export interface ColegaDaOka {
   id: number
   nome: string
   avatar_config: Partial<MacuAvatarConfig>
