@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { macuApi } from '../../../lib/apiClient'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { ApiError, ayvuApi, macuApi, turmaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
@@ -60,6 +60,17 @@ export function LagoaCena() {
   // no meio da sessão do aluno.
   const ehNoite = useMemo(calcularEhNoite, [])
 
+  const [mostrarEntrarTurma, setMostrarEntrarTurma] = useState(false)
+  const [codigoTurma, setCodigoTurma] = useState('')
+  const entrarTurma = useMutation({
+    mutationFn: (codigo: string) => turmaApi.entrar(codigo),
+    onSuccess: (dados) => {
+      setCodigoTurma('')
+      setMostrarEntrarTurma(false)
+      window.alert(`Você entrou na turma "${dados.nome_turma}"!`)
+    },
+  })
+
   useEffect(() => {
     const duracao = DURACAO[fase]
     if (!duracao) return undefined
@@ -78,9 +89,13 @@ export function LagoaCena() {
 
   function aoSubmeter(evento: FormEvent) {
     evento.preventDefault()
-    if (fase !== 'ocioso' || !termo.trim()) return
+    const termoFinal = termo.trim()
+    if (fase !== 'ocioso' || !termoFinal) return
     inputRef.current?.blur()
     setFase('caindo')
+    // Best-effort: alimenta a visão do professor por aluno (ver
+    // routers/turmas.py). Não bloqueia a animação nem trava o fluxo se falhar.
+    void ayvuApi.registrarPesquisa(termoFinal).catch(() => {})
   }
 
   const emMovimento = fase !== 'ocioso'
@@ -92,21 +107,62 @@ export function LagoaCena() {
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#12313a]">
       {!emMovimento && (
-        <div className="absolute right-4 top-4 z-40 flex gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/aluno/macu')}
-            className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
-          >
-            🧑‍🎨 Meu Macu
-          </button>
-          <button
-            type="button"
-            onClick={sair}
-            className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
-          >
-            Sair
-          </button>
+        <div className="absolute right-4 top-4 z-40 flex flex-col items-end gap-2">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/aluno/macu')}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              🧑‍🎨 Meu Macu
+            </button>
+            <button
+              type="button"
+              onClick={() => setMostrarEntrarTurma((atual) => !atual)}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              🏫 Entrar em turma
+            </button>
+            <button
+              type="button"
+              onClick={sair}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              Sair
+            </button>
+          </div>
+
+          {mostrarEntrarTurma && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (codigoTurma.trim()) entrarTurma.mutate(codigoTurma.trim())
+              }}
+              className="flex flex-col gap-2 rounded-2xl border border-white/30 bg-white/95 p-3 shadow-xl"
+            >
+              <label className="text-xs font-bold text-[#2d2620]">Código da turma</label>
+              <input
+                autoFocus
+                value={codigoTurma}
+                onChange={(e) => setCodigoTurma(e.target.value.toUpperCase())}
+                placeholder="ex: AYVU4X"
+                maxLength={10}
+                className="w-40 rounded-lg border border-border bg-[#fffaf3] px-2.5 py-1.5 text-sm uppercase tracking-widest text-[#2d2620] outline-none focus:border-accent"
+              />
+              {entrarTurma.isError && (
+                <p className="max-w-40 text-xs font-semibold text-erro">
+                  {entrarTurma.error instanceof ApiError ? entrarTurma.error.message : 'Não foi possível entrar.'}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={entrarTurma.isPending || !codigoTurma.trim()}
+                className="rounded-lg bg-accent px-3 py-1.5 text-sm font-bold text-white hover:bg-accent-dark disabled:opacity-50"
+              >
+                {entrarTurma.isPending ? 'Entrando...' : 'Entrar'}
+              </button>
+            </form>
+          )}
         </div>
       )}
 

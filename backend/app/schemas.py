@@ -188,3 +188,45 @@ class VideoSugerido(BaseModel):
     titulo: str
     canal: str
     miniatura: str
+
+
+class PesquisaCreate(BaseModel):
+    # user_id vem do token, mesmo padrão do Reko/Progresso — nunca do corpo.
+    termo: str = Field(min_length=1, max_length=200)
+
+
+# ---------------------------------------------------------------------------
+# Turmas — a "ilha" do professor
+# ---------------------------------------------------------------------------
+
+
+class TurmaCreate(BaseModel):
+    nome: str = Field(min_length=1, max_length=120)
+
+
+class TurmaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    codigo: str
+    criado_em: datetime
+
+
+class EntrarTurmaPayload(BaseModel):
+    codigo: str = Field(min_length=1, max_length=10)
+
+
+class EntrarTurmaOut(BaseModel):
+    turma_id: int
+    nome_turma: str
+
+
+class AlunoDaTurmaOut(BaseModel):
+    id: int
+    nome: str
+    # 'atencao' | 'neutro' | 'bem' | 'sem_dados' — nunca a nota exata do
+    # Reko, só um sinal. Ver routers/turmas.py pra regra de cálculo.
+    sinal_bem_estar: str
+    frase_bem_estar: str
+    temas_pesquisados: list[str]

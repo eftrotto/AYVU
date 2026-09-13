@@ -184,6 +184,24 @@ def marcar_progresso(
     return registro
 
 
+@router.post("/pesquisas", status_code=201)
+def registrar_pesquisa(
+    entrada: schemas.PesquisaCreate,
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    """
+    Registra um termo pesquisado na Lagoa (chamado a cada mergulho). Alimenta
+    a lista de "temas pesquisados" que o professor vê por aluno em
+    routers/turmas.py — ao contrário do Reko, aqui a visibilidade individual
+    foi um pedido explícito, não agregada.
+    """
+    registro = models.PesquisaAyvu(user_id=aluno.id, termo=entrada.termo.strip())
+    db.add(registro)
+    db.commit()
+    return {"ok": True}
+
+
 @router.get("/videos", response_model=list[schemas.VideoSugerido])
 def buscar_videos(
     termo: str,

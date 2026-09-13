@@ -23,11 +23,25 @@ class Usuario(Base):
     senha_hash: Mapped[str] = mapped_column(String(255))
     tipo: Mapped[TipoUsuario] = mapped_column(Enum(TipoUsuario), index=True)
 
-    # Nulo pra professores sem turma fixa (ex.: coordenação). Alunos
-    # normalmente têm turma, mas isso não é reforçado aqui a nível de banco
-    # pra manter o cadastro simples nesta etapa.
-    turma_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
+    # Nulo até o aluno entrar numa turma com o código de convite (ver Turma
+    # abaixo) ou pra professores sem turma fixa (ex.: coordenação).
+    turma_id: Mapped[int | None] = mapped_column(ForeignKey("turmas.id"), index=True, nullable=True)
 
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Turma(Base):
+    """
+    A "ilha" de um professor — os alunos entram usando o código de convite
+    (ver routers/turmas.py). Um professor pode ter várias turmas.
+    """
+
+    __tablename__ = "turmas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    nome: Mapped[str] = mapped_column(String(120))
+    professor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    codigo: Mapped[str] = mapped_column(String(10), unique=True, index=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
@@ -135,6 +149,22 @@ class Conteudo(Base):
     ordem_sugerida: Mapped[int] = mapped_column(Integer, default=0)
 
     tema: Mapped["Tema"] = relationship(back_populates="conteudos")
+
+
+class PesquisaAyvu(Base):
+    """
+    Um termo pesquisado pelo aluno na Lagoa do Ayvu (cada mergulho gera um
+    registro). Alimenta a visão do professor por aluno em routers/turmas.py
+    — aqui, ao contrário do Reko, o pedido foi visibilidade individual
+    mesmo, não agregada.
+    """
+
+    __tablename__ = "pesquisas_ayvu"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    termo: Mapped[str] = mapped_column(String(200))
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class ProgressoAluno(Base):

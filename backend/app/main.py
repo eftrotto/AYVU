@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import models
 from .database import Base, engine
-from .routers import auth, ayvu, macu, reko
+from .routers import auth, ayvu, macu, reko, turmas
 
 logger = logging.getLogger("ayvu")
 
@@ -54,6 +54,7 @@ app.include_router(auth.router)
 app.include_router(macu.router)
 app.include_router(reko.router)
 app.include_router(ayvu.router)
+app.include_router(turmas.router)
 
 class SPAStaticFiles(StaticFiles):
     """

@@ -160,3 +160,29 @@ export interface QuizConteudo {
   feedback_certo: string
   feedback_errado: string
 }
+
+// ---------------------------------------------------------------------------
+// Turmas — a "ilha" do professor
+// ---------------------------------------------------------------------------
+
+export interface Turma {
+  id: number
+  nome: string
+  codigo: string
+  criado_em: string
+}
+
+export interface EntrarTurmaResponse {
+  turma_id: number
+  nome_turma: string
+}
+
+export type SinalBemEstar = 'atencao' | 'neutro' | 'bem' | 'sem_dados'
+
+export interface AlunoDaTurma {
+  id: number
+  nome: string
+  sinal_bem_estar: SinalBemEstar
+  frase_bem_estar: string
+  temas_pesquisados: string[]
+}
