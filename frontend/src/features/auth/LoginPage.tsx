@@ -18,7 +18,6 @@ export function LoginPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
 
-  // Já tem sessão? Nem mostra o login de novo.
   if (usuario) {
     return <Navigate to={usuario.tipo === 'professor' ? '/professor' : '/aluno'} replace />
   }

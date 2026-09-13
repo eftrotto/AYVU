@@ -9,10 +9,8 @@ import {
   caminhoDaCamada,
 } from './lpcData'
 
-// Elipse (coordenadas nativas de 64px) que cobre o "buraco" entre o fim do
-// cabelo e o começo do corpo na pose "parado de frente" (linha 10) — ver
-// comentário mais abaixo. Ajustada pra caber dentro do contorno da cabeça
-// em qualquer estilo de cabelo (não vaza pros lados/topo).
+// Cobre o "buraco" entre cabelo e corpo na pose "parado de frente" (ver
+// comentário mais abaixo). Coordenadas nativas de 64px.
 const ROSTO_ELIPSE = { cx: 32, cy: 27, rx: 10, ry: 9 }
 
 interface AvatarStageProps {
@@ -29,11 +27,8 @@ const cacheDeImagens = new Map<string, HTMLImageElement>()
 function carregarImagem(url: string): Promise<HTMLImageElement> {
   const existente = cacheDeImagens.get(url)
 
-  // Um <img> recém-criado, SEM src, já vem com `complete === true` (não há
-  // nada pra carregar ainda) — checar `complete` antes de setar `src`
-  // resolvia a promise na hora com uma imagem em branco, sem nunca
-  // carregar nada de verdade. Por isso `src` é setado antes de qualquer
-  // checagem de estado.
+  // Um <img> recém-criado, SEM src, já vem com `complete === true` — checar
+  // isso antes de setar `src` resolvia a promise na hora com imagem em branco.
   if (existente) {
     if (existente.complete) return Promise.resolve(existente)
     return new Promise((resolve) => {
@@ -51,11 +46,6 @@ function carregarImagem(url: string): Promise<HTMLImageElement> {
   })
 }
 
-/**
- * Composição do boneco via <canvas> (não CSS background-image empilhado):
- * cada camada é a mesma spritesheet LPC inteira, e desenhamos só o quadro
- * fixo (linha/coluna) de cada uma no canvas, na ordem certa.
- */
 export function AvatarStage({
   config,
   tamanho = 320,
@@ -82,12 +72,10 @@ export function AvatarStage({
       ctx.imageSmoothingEnabled = false
       ctx.clearRect(0, 0, tamanho, tamanho)
 
-      // Base da cor de pele por trás da testa: a sprite do corpo não
-      // desenha nada acima do queixo (espera o cabelo cobrir 100%), mas o
-      // desenho do cabelo tem uma frestinha de 1-3px entre o fim dele e o
-      // começo do corpo (visível em QUALQUER estilo, mais forte em fundos
-      // escuros). Preenchendo essa faixa com a cor de pele antes das
-      // camadas reais, a frestinha mostra "pele" em vez do fundo da cena.
+      // A sprite do corpo não desenha nada acima do queixo (espera o cabelo
+      // cobrir 100%), mas todo estilo de cabelo tem uma frestinha de 1-3px
+      // ali — preenchendo com a cor de pele antes das camadas reais, a
+      // frestinha mostra "pele" em vez do fundo da cena.
       const escala = tamanho / LPC_CELL
       const tomDePele = TONS_DE_PELE.find((t) => t.valor === config.skinTone)?.hex
       if (tomDePele) {

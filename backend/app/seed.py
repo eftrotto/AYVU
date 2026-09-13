@@ -11,13 +11,11 @@ import json
 from .database import Base, SessionLocal, engine
 from .models import Conteudo, Tema, TipoConteudo
 
-# Placeholder de vídeo — troque pela URL real do vídeo curado quando existir.
-# (ID de exemplo oficial usado na documentação do YouTube IFrame Player API.)
+# Placeholder — troque pela URL real do vídeo curado quando existir.
 VIDEO_EXEMPLO = "https://www.youtube.com/embed/M7lc1UVf-VE"
 
 
 def _quiz(pergunta, alternativas, correta, feedback_certo, feedback_errado):
-    """Serializa um mini-quiz (tipo 'jogo') como JSON dentro de corpo_ou_url."""
     return json.dumps(
         {
             "pergunta": pergunta,

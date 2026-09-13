@@ -1,8 +1,4 @@
-/**
- * Tipos que espelham os schemas Pydantic do backend (backend/app/schemas.py).
- * Mantidos manualmente em vez de gerados — o projeto é pequeno o bastante
- * pra isso não pesar, e evita mais uma ferramenta de build.
- */
+// Espelha manualmente os schemas Pydantic de backend/app/schemas.py.
 
 export type TipoUsuario = 'aluno' | 'professor'
 

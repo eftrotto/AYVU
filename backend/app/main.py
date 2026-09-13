@@ -14,9 +14,8 @@ from .routers import auth, ayvu, macu, notas, okas, reko
 
 logger = logging.getLogger("ayvu")
 
-# Build de produção do frontend (Vite). Em desenvolvimento o frontend roda
-# no seu próprio servidor (npm run dev, porta 5173) e essa pasta não
-# existe — o backend funciona só como API nesse caso, sem problema.
+# Build de produção do frontend (Vite). Em dev o frontend roda em servidor
+# próprio (porta 5173) e essa pasta não existe — backend funciona só como API.
 FRONTEND_DIST = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 
 
@@ -36,14 +35,8 @@ app.add_middleware(
 )
 
 
-# ---------------------------------------------------------------------------
-# Tratamento de erro consistente: HTTPException e erro de validação (422) já
-# vêm padronizados como {"detail": ...} de fábrica no FastAPI. O que faltava
-# era isso valer também pra exceções NÃO tratadas — por padrão, o
-# Starlette devolve um 500 em texto puro (não JSON) e nada fica registrado.
-# ---------------------------------------------------------------------------
-
-
+# Sem isso, uma exceção não tratada vira 500 em texto puro (não JSON) e sem
+# log — diferente de HTTPException/422, que o FastAPI já padroniza.
 @app.exception_handler(Exception)
 async def erro_nao_tratado(request: Request, exc: Exception):
     logger.exception("Erro não tratado em %s %s", request.method, request.url.path)
@@ -58,12 +51,8 @@ app.include_router(okas.router)
 app.include_router(notas.router)
 
 class SPAStaticFiles(StaticFiles):
-    """
-    StaticFiles comum só serve arquivo que existe fisicamente — mas o React
-    Router cria rotas como /aluno ou /aluno/ayvu/3 que não são arquivos.
-    Isso faz um F5 (ou um link direto) numa dessas rotas cair de volta pro
-    index.html, que é quem inicializa o React Router pra tratar a rota.
-    """
+    """Sem fallback pro index.html, um F5 em /aluno/ayvu/3 (rota do React
+    Router, não um arquivo) daria 404 em vez de deixar o React tratar a rota."""
 
     async def get_response(self, path: str, scope):
         try:
@@ -74,8 +63,6 @@ class SPAStaticFiles(StaticFiles):
             raise
 
 
-# Serve o build de produção do frontend, se ele existir (npm run build gera
-# frontend/dist). Registrado por último: as rotas de API acima têm
-# prioridade sobre esse catch-all.
+# Registrado por último: as rotas de API acima têm prioridade sobre esse catch-all.
 if FRONTEND_DIST.is_dir():
     app.mount("/", SPAStaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")

@@ -10,11 +10,7 @@ function horario(isoString: string): string {
   return new Date(isoString).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
-/**
- * Chat em grupo da Oka — só entre alunos da mesma turma. Faz polling em vez
- * de websocket: simples o bastante pro volume de mensagens de um MVP, sem
- * precisar de infra extra.
- */
+// Polling em vez de websocket: simples o bastante pro volume de um MVP.
 export function ChatDaOka() {
   const { usuario } = useAuth()
   const queryClient = useQueryClient()

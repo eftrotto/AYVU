@@ -1,20 +1,6 @@
-/**
- * Conteúdo da tela de exploração do tema.
- *
- * Este protótipo prioriza o FLUXO (busca -> gota -> mergulho -> como
- * estudar -> exploração), não a geração de conteúdo em si — a pesquisa é
- * texto livre ("qualquer tema, dentro ou fora do currículo"), então não dá
- * pra vir de uma tabela fixa de temas curados como o Ayvu original tinha.
- *
- * Por isso o conteúdo abaixo é gerado localmente a partir do termo
- * pesquisado, só pra preencher a tela de forma coerente na demo — e cada
- * um dos 7 modos gera uma ESTRUTURA DE CONTEÚDO DIFERENTE (não é só um
- * texto de abertura diferente por cima da mesma lista de sempre).
- *
- * O próximo passo natural (fora do escopo deste protótipo) é trocar isso
- * por uma chamada real de backend — provavelmente um endpoint que gera
- * conteúdo sob demanda (ex.: via LLM) a partir do termo + modo escolhido.
- */
+// Conteúdo gerado localmente a partir do termo pesquisado (texto livre, sem
+// tabela fixa de temas curados) — placeholder de demo. Próximo passo natural
+// é trocar por uma chamada de backend (ex.: LLM) a partir de termo + modo.
 import type { ModoChave } from './modos'
 
 function capitalizar(texto: string): string {
@@ -34,9 +20,7 @@ export interface ConteudoEntender extends Base {
 
 export interface ConteudoAssistir extends Base {
   tipo: 'assistir'
-  // Os vídeos em si não são gerados aqui — vêm de uma busca real no
-  // YouTube (ver ayvuApi.buscarVideos), buscados direto pela
-  // TemaExploracaoPage a partir do termo.
+  // Os vídeos em si vêm de uma busca real no YouTube (ayvuApi.buscarVideos), não daqui.
   dicaDeAtencao: string
 }
 
@@ -58,10 +42,7 @@ export interface PerguntaAutoavaliacao {
 
 export interface ConteudoTestar extends Base {
   tipo: 'testar'
-  // Autoavaliação, não uma prova: sem tema fixo não dá pra ter uma
-  // "resposta certa" de verdade, então o quiz mede familiaridade em 3
-  // frentes diferentes (não é 1 pergunta genérica repetida) e termina
-  // recomendando o próximo modo — não é só "nota", tem uma saída prática.
+  // Autoavaliação, não prova: sem resposta certa, mede familiaridade e recomenda o próximo modo.
   perguntas: PerguntaAutoavaliacao[]
 }
 

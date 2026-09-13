@@ -8,7 +8,6 @@ interface OndulacaoProps {
   atraso?: number
 }
 
-/** Anéis concêntricos que se expandem e somem — usado na queda da gota e no mergulho do Macu. */
 export function Ondulacao({ x, y, tamanho = 220, cor = 'rgba(255,255,255,0.65)', atraso = 0 }: OndulacaoProps) {
   return (
     <div className="pointer-events-none absolute z-10" style={{ left: x, top: y }}>

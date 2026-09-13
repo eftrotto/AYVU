@@ -11,11 +11,8 @@ from ..deps import exigir_aluno, get_usuario_atual
 
 router = APIRouter(prefix="/ayvu", tags=["ayvu"])
 
-# Opções de busca do yt-dlp: "extract_flat" pega só os metadados da lista
-# de resultados (título, id, canal), sem abrir cada vídeo — rápido e não
-# baixa nada. Isso não passa pela API oficial do YouTube (não precisa de
-# chave), então não existe um equivalente ao safeSearch=strict aqui — é
-# a mesma lista que a busca pública do YouTube devolveria.
+# yt-dlp em vez da API oficial do YouTube (sem precisar de chave) — por isso
+# não existe um safeSearch=strict aqui, ver mitigação abaixo.
 _OPCOES_YTDLP = {
     "quiet": True,
     "no_warnings": True,
@@ -24,12 +21,8 @@ _OPCOES_YTDLP = {
     "noplaylist": True,
 }
 
-# Mitigação (sem API oficial não tem como ter safeSearch de verdade):
-# 1) "explicação" no fim da busca já puxa muito mais canal educacional
-#    (Nerdologia, aula, documentário) e bem menos previsão/clickbait —
-#    testado manualmente antes de entrar aqui.
-# 2) mesmo assim, filtra fora títulos com sinais claros de sensacionalismo
-#    (urgente/alerta/chocante, emoji de alarme, MUITAS MAIÚSCULAS).
+# Mitigação: sufixo "explicação" puxa mais canal educacional e menos
+# clickbait (testado manualmente), e _titulo_suspeito filtra o que sobrar.
 _SUFIXO_BUSCA = " explicação"
 _QUANTIDADE_BUSCADA = 10
 _QUANTIDADE_DEVOLVIDA = 5
@@ -122,15 +115,8 @@ def progresso_do_aluno(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """
-    Progresso do aluno logado em TODOS os temas — usado só pra montar os
-    indicadores ("2 de 4 conteúdos explorados") na tela inicial e os selos
-    de concluído dentro de cada tema. Sempre o do próprio aluno (vem do
-    token, nunca de um id arbitrário na URL) — não existe (e não deve
-    existir) uma rota que exponha o progresso de um aluno pra outra
-    pessoa. Ver o gancho de "interesses predominantes" comentado em
-    models.py pra quando isso precisar virar agregado por Oka.
-    """
+    """Sempre o progresso do próprio aluno (vem do token, nunca de um id
+    arbitrário na URL) — não deve existir rota que exponha isso pra outra pessoa."""
     linhas = db.execute(
         select(models.ProgressoAluno, models.Conteudo.tema_id)
         .join(models.Conteudo, models.Conteudo.id == models.ProgressoAluno.conteudo_id)
@@ -159,9 +145,8 @@ def marcar_progresso(
     if conteudo is None:
         raise HTTPException(status_code=404, detail="Conteúdo não encontrado.")
 
-    # Upsert: reabrir/revisitar um conteúdo atualiza o mesmo registro, não
-    # cria duplicata (diferente do check-in do Reko, aqui marcar de novo é
-    # uma ação normal e idempotente, não um erro).
+    # Upsert: revisitar um conteúdo atualiza o registro, não cria duplicata
+    # (diferente do Reko, aqui marcar de novo é normal, não um erro).
     registro = db.execute(
         select(models.ProgressoAluno).where(
             models.ProgressoAluno.user_id == aluno.id,
@@ -190,12 +175,8 @@ def registrar_pesquisa(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """
-    Registra um termo pesquisado na Lagoa (chamado a cada mergulho). Alimenta
-    a lista de "temas pesquisados" que o professor vê por aluno em
-    routers/okas.py — ao contrário do Reko, aqui a visibilidade individual
-    foi um pedido explícito, não agregada.
-    """
+    """Alimenta "temas pesquisados" que o professor vê por aluno em okas.py —
+    ao contrário do Reko, aqui a visibilidade individual foi um pedido explícito."""
     registro = models.PesquisaAyvu(user_id=aluno.id, termo=entrada.termo.strip())
     db.add(registro)
     db.commit()
@@ -207,11 +188,6 @@ def buscar_videos(
     termo: str,
     _usuario: models.Usuario = Depends(get_usuario_atual),
 ):
-    """
-    Busca vídeos reais no YouTube pro termo pesquisado na Lagoa (modo
-    "Quero assistir"). Cada resultado abre no próprio YouTube ao clicar —
-    não tem player embutido aqui, só a lista com título/miniatura real.
-    """
     try:
         with yt_dlp.YoutubeDL(_OPCOES_YTDLP) as ydl:
             resultado = ydl.extract_info(

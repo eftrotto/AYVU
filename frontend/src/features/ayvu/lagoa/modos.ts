@@ -7,7 +7,6 @@ export interface Modo {
   emoji: string
 }
 
-/** Os 7 jeitos de estudar um tema — a ordem aqui é a ordem de exibição dos cards. */
 export const MODOS: Modo[] = [
   { chave: 'entender', rotulo: 'Quero entender', descricao: 'Uma explicação clara, direto ao ponto.', emoji: '💡' },
   { chave: 'assistir', rotulo: 'Quero assistir', descricao: 'Vídeos e conteúdo visual sobre o tema.', emoji: '🎬' },

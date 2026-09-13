@@ -39,8 +39,7 @@ export function ProfessorDashboard() {
 
   const okasQuery = useQuery({ queryKey: ['okas'], queryFn: okaApi.listarMinhas })
 
-  // assim que a lista de okas chega, seleciona a primeira automaticamente
-  // (evita a tela vazia "escolha uma oka" quando só existe uma).
+  // Seleciona a primeira Oka automaticamente assim que a lista chega.
   useEffect(() => {
     if (okaSelecionadaId === null && okasQuery.data && okasQuery.data.length > 0) {
       setOkaSelecionadaId(okasQuery.data[0].id)

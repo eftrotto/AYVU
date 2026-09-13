@@ -11,10 +11,6 @@ from ..deps import exigir_aluno
 
 router = APIRouter(prefix="/macu", tags=["macu"])
 
-# Antes desta refatoração, o Macu só existia no localStorage do navegador
-# (não havia endpoint no backend). Agora que existe login, o avatar
-# persiste por aluno — mesmo dispositivo ou outro, o avatar é o mesmo.
-
 
 def _avatar_padrao(user_id: int) -> schemas.MacuAvatarOut:
     return schemas.MacuAvatarOut(user_id=user_id, avatar_config={}, atualizado_em=datetime.now(timezone.utc))

@@ -3,7 +3,6 @@ interface ErrorMessageProps {
   aoTentarNovamente?: () => void
 }
 
-/** Mensagem de erro amigável — nunca mostra stack trace/status cru pro usuário. */
 export function ErrorMessage({ mensagem, aoTentarNovamente }: ErrorMessageProps) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl bg-erro-soft px-4 py-6 text-center">

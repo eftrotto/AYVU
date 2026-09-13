@@ -10,11 +10,8 @@ import { AVATAR_PADRAO } from '../macu/lpcData'
 import { ChatDaOka } from './ChatDaOka'
 import { useAuth } from '../auth/AuthContext'
 
-/**
- * Oka — quem mais está na mesma Oka. De propósito só mostra nome + Macu de
- * cada colega, nada do que só o professor pode ver (sinal de bem-estar,
- * temas pesquisados) — ver ColegaDaOkaOut no backend.
- */
+/** De propósito só mostra nome + Macu de cada colega, nada do que só o
+ * professor pode ver (sinal de bem-estar, temas pesquisados). */
 export function OkaPage() {
   const navigate = useNavigate()
   const { usuario } = useAuth()

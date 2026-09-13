@@ -1,11 +1,7 @@
 @import "tailwindcss";
 
-/*
- * Tokens de design do AYVU — antes duplicados em 6 arquivos CSS diferentes
- * (um por página HTML), agora centralizados aqui. Qualquer token abaixo
- * também vira uma classe utilitária do Tailwind (ex: --color-accent gera
- * bg-accent, text-accent, border-accent...).
- */
+/* Cada token abaixo também vira classe utilitária do Tailwind
+   (--color-accent gera bg-accent, text-accent, border-accent...). */
 @theme {
   --color-bg: #fbf1e6;
   --color-card: #ffffff;

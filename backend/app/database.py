@@ -8,21 +8,16 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-# DATABASE_URL vem do .env (ex.: Postgres do Supabase). Sem essa variável,
-# cai no SQLite local — útil pra rodar/testar sem depender de nada externo.
 DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'ayvu.db'}")
 
-# O Supabase (e serviços parecidos) dão a string como "postgresql://..." —
-# isso faz o SQLAlchemy tentar usar psycopg2 por padrão. Instalamos o
-# psycopg (v3) no requirements.txt, então reescrevemos pra usar o dialeto
-# certo sem o usuário precisar saber disso.
+# Supabase entrega a string como "postgresql://", mas isso faz o SQLAlchemy
+# tentar psycopg2 (não instalado); reescreve pro dialeto psycopg (v3).
 if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 elif DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
 
-# connect_args com check_same_thread só faz sentido pro SQLite; o Postgres
-# (psycopg) não usa e não aceita esse argumento.
+# check_same_thread só existe pro SQLite; o Postgres nem aceita o argumento.
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(DATABASE_URL, connect_args=_connect_args)

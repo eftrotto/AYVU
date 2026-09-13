@@ -1,14 +1,5 @@
-/**
- * Controle de "já fez o check-in hoje" — usado pelo RekoPage (pra travar
- * um segundo check-in no mesmo dia) e pelo gate de entrada do aluno
- * (features/dashboard/AlunoEntrada.tsx), que só libera a Lagoa do Ayvu
- * depois do Reko de hoje estar feito.
- *
- * A chave é isolada por user_id: sem isso, dois alunos logando no mesmo
- * navegador (comum em laboratório de escola, ou mesmo em teste manual)
- * fariam o segundo aluno herdar o "já fiz o check-in hoje" do primeiro.
- */
-
+// Chave isolada por user_id: sem isso, um segundo aluno logando no mesmo
+// navegador herdaria o "já fiz o check-in hoje" do primeiro.
 const PREFIXO_CHAVE = 'ayvu_reko_ultimo_checkin'
 
 function chave(userId: number): string {

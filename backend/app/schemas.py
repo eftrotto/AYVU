@@ -50,14 +50,12 @@ class LoginResponse(BaseModel):
 # Reko
 # ---------------------------------------------------------------------------
 
-# Nota de cada competência do CASEL 5, sempre na escala Likert 1-5.
-NotaCompetencia = Field(ge=1, le=5)
+NotaCompetencia = Field(ge=1, le=5)  # escala Likert 1-5, CASEL 5
 
 
 class RekoCheckinCreate(BaseModel):
-    # user_id NÃO vem mais do corpo da requisição — o router deriva do
-    # token de quem está logado (ver deps.get_usuario_atual), pra ninguém
-    # conseguir enviar check-in em nome de outro aluno.
+    # user_id vem do token (deps.get_usuario_atual), nunca do corpo — pra
+    # ninguém enviar check-in em nome de outro aluno.
     data: date
     autoconhecimento: int = NotaCompetencia
     autogestao: int = NotaCompetencia
@@ -102,9 +100,8 @@ class RekoAggregateOut(BaseModel):
 
 
 class MacuAvatarUpsert(BaseModel):
-    # Formato livre (decidido pelo frontend — estilos/cores do LPC) em vez
-    # de um campo por opção: evita ter que alterar o backend toda vez que
-    # o Macu ganha uma opção nova de customização.
+    # Formato livre (decidido pelo frontend) em vez de um campo por opção:
+    # evita alterar o backend a cada opção nova de customização.
     avatar_config: dict[str, Any]
 
 
@@ -156,8 +153,7 @@ class TemaDetalheOut(TemaOut):
 
 
 class ProgressoCreate(BaseModel):
-    # user_id também não vem mais do corpo — deriva do token (mesmo motivo
-    # do Reko: antes dava pra registrar progresso em nome de outro aluno).
+    # user_id vem do token, mesmo motivo do Reko.
     conteudo_id: int
     concluido: bool = True
 
@@ -191,7 +187,6 @@ class VideoSugerido(BaseModel):
 
 
 class PesquisaCreate(BaseModel):
-    # user_id vem do token, mesmo padrão do Reko/Progresso — nunca do corpo.
     termo: str = Field(min_length=1, max_length=200)
 
 

@@ -1,5 +1,3 @@
-"""Dependencies do FastAPI pra saber quem está logado (ver security.py)."""
-
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -8,8 +6,8 @@ from sqlalchemy.orm import Session
 from . import models, security
 from .database import get_db
 
-# auto_error=False pra podermos dar uma mensagem em português quando faltar
-# o header Authorization, em vez do erro genérico do FastAPI.
+# auto_error=False pra dar uma mensagem em português quando faltar o header,
+# em vez do erro genérico do FastAPI.
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 

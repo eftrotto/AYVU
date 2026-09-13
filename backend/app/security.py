@@ -27,9 +27,7 @@ SECRET_KEY = os.environ.get(
 ALGORITHM = "HS256"
 EXPIRACAO_TOKEN = timedelta(days=7)
 
-# PBKDF2-HMAC-SHA256 (só biblioteca padrão do Python, sem dependência extra
-# tipo bcrypt/passlib). Número de iterações na mesma ordem de grandeza do
-# hasher padrão do Django hoje em dia.
+# PBKDF2 via stdlib (sem bcrypt/passlib); iterações na mesma ordem do Django.
 _ITERACOES_PBKDF2 = 260_000
 _HASH_ALGO = "sha256"
 

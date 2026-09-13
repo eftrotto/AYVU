@@ -27,7 +27,6 @@ def criar_oka(
     db: Session = Depends(get_db),
     professor: models.Usuario = Depends(exigir_professor),
 ):
-    """Cria uma Oka ("ilha"/turma) pro professor logado, com um código de convite único."""
     for _ in range(5):
         oka = models.Oka(nome=dados.nome, professor_id=professor.id, codigo=_gerar_codigo())
         db.add(oka)
@@ -64,7 +63,6 @@ def entrar_na_oka(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """Aluno entra numa Oka usando o código que o professor compartilhou."""
     codigo = dados.codigo.strip().upper()
     oka = db.execute(select(models.Oka).where(models.Oka.codigo == codigo)).scalar_one_or_none()
     if oka is None:
@@ -80,11 +78,8 @@ def listar_colegas(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """
-    Os colegas de Oka do próprio aluno. De propósito só nome + Macu, sem
-    temas pesquisados nem sinal de bem-estar (isso é só pro professor, ver
-    listar_alunos_da_oka).
-    """
+    """De propósito só nome + Macu, sem temas pesquisados nem sinal de
+    bem-estar (isso é só pro professor, ver listar_alunos_da_oka)."""
     if aluno.oka_id is None:
         return []
 
@@ -134,7 +129,6 @@ def listar_chat_da_minha_oka(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """Histórico do chat em grupo da Oka do aluno logado (mais antiga primeiro)."""
     if aluno.oka_id is None:
         return []
 
@@ -157,7 +151,6 @@ def enviar_mensagem_chat(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    """Aluno manda uma mensagem no chat em grupo da própria Oka."""
     if aluno.oka_id is None:
         raise HTTPException(status_code=400, detail="Você precisa estar numa Oka pra usar o chat.")
 
@@ -235,8 +228,7 @@ def listar_alunos_da_oka(
             .all()
         )
 
-        # dedupe mantendo a ordem (mais recente primeiro), sem diferenciar
-        # maiúsculas/minúsculas.
+        # dedupe case-insensitive, mantendo a ordem (mais recente primeiro).
         vistos: set[str] = set()
         temas_unicos: list[str] = []
         for termo in termos:
@@ -267,11 +259,8 @@ def listar_chat_da_oka_professor(
     db: Session = Depends(get_db),
     professor: models.Usuario = Depends(exigir_professor),
 ):
-    """
-    Visão do professor do chat da Oka — só leitura, pra supervisão/segurança.
-    O professor nunca manda mensagem aqui (ver enviar_mensagem_chat, restrito
-    a alunos).
-    """
+    """Só leitura, pra supervisão — professor nunca manda mensagem
+    (ver enviar_mensagem_chat, restrito a alunos)."""
     oka = db.get(models.Oka, oka_id)
     if oka is None or oka.professor_id != professor.id:
         raise HTTPException(status_code=404, detail="Oka não encontrada.")

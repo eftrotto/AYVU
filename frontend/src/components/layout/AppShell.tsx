@@ -14,7 +14,6 @@ const larguraMaxima: Record<NonNullable<AppShellProps['largura']>, string> = {
   lg: 'max-w-5xl',
 }
 
-/** Casca comum das telas autenticadas: logo, atalho pro Macu, botão sair. */
 export function AppShell({ children, largura = 'lg', voltar }: AppShellProps) {
   const { usuario, sair } = useAuth()
 

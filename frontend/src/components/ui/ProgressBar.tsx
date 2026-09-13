@@ -1,5 +1,5 @@
 interface ProgressBarProps {
-  percentual: number // 0-100
+  percentual: number
 }
 
 export function ProgressBar({ percentual }: ProgressBarProps) {

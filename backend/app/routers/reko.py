@@ -9,10 +9,8 @@ from ..deps import exigir_aluno, exigir_professor
 
 router = APIRouter(prefix="/reko", tags=["reko"])
 
-# Abaixo desse número de check-ins na Oka, não devolvemos médias: com
-# poucos alunos, uma "média" se aproxima demais da nota de uma pessoa só,
-# o que fere o princípio do Reko de nunca expor dado individual ao
-# professor (ver README do projeto).
+# Abaixo disso não devolvemos médias: com poucos alunos, a "média" se
+# aproxima demais da nota de uma pessoa só, ferindo a privacidade do Reko.
 MINIMO_RESPOSTAS_PARA_AGREGADO = 5
 
 
@@ -42,12 +40,8 @@ def agregado_da_oka(
     db: Session = Depends(get_db),
     _professor: models.Usuario = Depends(exigir_professor),
 ):
-    """
-    Médias agregadas da Oka inteira — NUNCA um endpoint por aluno.
-    Não existe (e não deve existir) uma rota que devolva o check-in de um
-    único aluno para o professor; só o agregado aqui. Só professores
-    autenticados conseguem chamar essa rota (ver deps.exigir_professor).
-    """
+    """Médias agregadas da Oka inteira — não deve existir rota que devolva
+    o check-in de um único aluno pro professor."""
     linha = db.execute(
         select(
             func.count(models.RekoCheckin.id),

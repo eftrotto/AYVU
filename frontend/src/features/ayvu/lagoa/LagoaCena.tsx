@@ -42,11 +42,6 @@ function calcularEhNoite(): boolean {
   return hora >= 18 || hora < 6
 }
 
-/**
- * Home do Ayvu — protótipo da experiência do lago.
- * Fluxo: busca -> gota cai -> ondulação -> Macu pula -> mergulha -> transição
- * pra tela "como você quer estudar isso".
- */
 export function LagoaCena() {
   const navigate = useNavigate()
   const { sair } = useAuth()
@@ -93,8 +88,7 @@ export function LagoaCena() {
     if (fase !== 'ocioso' || !termoFinal) return
     inputRef.current?.blur()
     setFase('caindo')
-    // Best-effort: alimenta a visão do professor por aluno (ver
-    // routers/okas.py). Não bloqueia a animação nem trava o fluxo se falhar.
+    // Best-effort: alimenta a visão do professor por aluno; não trava o fluxo se falhar.
     void ayvuApi.registrarPesquisa(termoFinal).catch(() => {})
   }
 
@@ -186,7 +180,6 @@ export function LagoaCena() {
         animate={{ scale: fase === 'saindo' ? 1.9 : 1 }}
         transition={{ duration: 0.75, ease: 'easeIn' }}
       >
-        {/* Logo discreta no canto — só em repouso, some junto com os botões durante o mergulho */}
         {!emMovimento && (
           <img
             src="/assets/logo.png"
@@ -195,7 +188,6 @@ export function LagoaCena() {
           />
         )}
 
-        {/* Céu — muda de dia/noite conforme o horário real do aparelho */}
         <div
           className={`absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b ${
             ehNoite
@@ -219,7 +211,6 @@ export function LagoaCena() {
             ))}
         </div>
 
-        {/* Sol de dia, lua de noite */}
         {ehNoite ? (
           <div className="absolute left-1/2 top-[38%] h-24 w-24 -translate-x-1/2 rounded-full bg-[#e7ecf5] opacity-90">
             <span className="absolute left-[18%] top-[22%] h-3 w-3 rounded-full bg-[#c7d0e0]" />
@@ -230,7 +221,6 @@ export function LagoaCena() {
           <div className="absolute left-1/2 top-[38%] h-24 w-24 -translate-x-1/2 rounded-full bg-[#ffedc2] opacity-80 blur-[2px]" />
         )}
 
-        {/* Água */}
         <div
           className={`absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b ${
             ehNoite ? 'from-[#1f4650] via-[#173f47] to-[#0d2c34]' : 'from-[#4f8f92] via-[#215a63] to-[#0d2c34]'
@@ -241,7 +231,6 @@ export function LagoaCena() {
               ehNoite ? 'from-[#232f52]/40' : 'from-[#ffd9a8]/40'
             }`}
           />
-          {/* brilho refletido do sol/lua na água */}
           <div
             className={`absolute left-1/2 top-2 h-16 w-10 -translate-x-1/2 rounded-full blur-md ${
               ehNoite ? 'bg-[#e7ecf5]/20' : 'bg-[#ffedc2]/30'
@@ -249,21 +238,17 @@ export function LagoaCena() {
           />
         </div>
 
-        {/* Ilha — onde o Macu mora entre uma pesquisa e outra, no meio da lagoa */}
         <div className="absolute z-[3]" style={{ left: '24%', top: '57%', width: '52%', height: '20%' }}>
-          {/* areia, base elíptica que "mergulha" na água */}
           <div
             className={`absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg ${
               ehNoite ? 'bg-gradient-to-b from-[#6b6248] to-[#4a4433]' : 'bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]'
             }`}
           />
-          {/* grama, elipse menor por cima da areia */}
           <div
             className={`absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] ${
               ehNoite ? 'bg-gradient-to-b from-[#2c4a2a] to-[#1e3620]' : 'bg-gradient-to-b from-[#5f9448] to-[#3f6c32]'
             }`}
           />
-          {/* tufos de grama e uma pedrinha, só decoração */}
           <span
             className={`absolute h-3 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
             style={{ left: '22%', top: '8%', transform: 'rotate(-12deg)' }}
@@ -281,16 +266,13 @@ export function LagoaCena() {
             style={{ left: '12%', bottom: '18%' }}
           />
 
-          {/* Coqueiro — do lado do Macu, sem encostar nele */}
           <div className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 110, height: 150 }}>
-            {/* tronco, levemente curvado */}
             <div
               className={`absolute bottom-0 left-[30%] w-3 origin-bottom rounded-full ${
                 ehNoite ? 'bg-[#3a2a1c]' : 'bg-[#7a5636]'
               }`}
               style={{ height: '72%', transform: 'rotate(-10deg)' }}
             />
-            {/* folhas, um leque de elipses saindo do topo do tronco */}
             {[-65, -32, -2, 28, 58].map((angulo) => (
               <span
                 key={angulo}
@@ -305,7 +287,6 @@ export function LagoaCena() {
                 }}
               />
             ))}
-            {/* cocos */}
             <span
               className={`absolute h-3 w-3 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
               style={{ left: '33%', top: '31%' }}
@@ -317,7 +298,6 @@ export function LagoaCena() {
           </div>
         </div>
 
-        {/* Macu na ilha */}
         {macuVisivel && (
           <motion.div
             className="absolute z-[5]"
@@ -341,17 +321,14 @@ export function LagoaCena() {
           </motion.div>
         )}
 
-        {/* ondulação da gota caindo na água */}
         {(fase === 'ondulando' || fase === 'pulando' || fase === 'mergulhando' || fase === 'saindo') && (
           <Ondulacao x="50%" y="82%" tamanho={190} />
         )}
 
-        {/* respingo do mergulho */}
         {(fase === 'mergulhando' || fase === 'saindo') && (
           <Ondulacao x="36%" y="94%" tamanho={260} cor="rgba(255,255,255,0.8)" atraso={0.1} />
         )}
 
-        {/* Barra de busca -> gota */}
         <motion.form
           onSubmit={aoSubmeter}
           initial={false}
@@ -393,7 +370,7 @@ export function LagoaCena() {
         </motion.form>
       </motion.div>
 
-      {/* "câmera" mergulhando: cobre a cena com um azul profundo até a próxima tela entrar */}
+      {/* cobre a cena de azul até a próxima tela entrar */}
       <motion.div
         className="pointer-events-none absolute inset-0 z-30 bg-[#0a2229]"
         initial={{ opacity: 0 }}

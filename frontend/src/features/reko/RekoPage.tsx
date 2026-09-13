@@ -43,8 +43,7 @@ export function RekoPage() {
     try {
       await mutacao.mutateAsync(payload)
     } catch (erro) {
-      // já existe check-in hoje no servidor (409) tem o mesmo resultado
-      // pro aluno; qualquer outra falha (rede, 500...) guarda localmente.
+      // 409 (já fez hoje) tem o mesmo resultado pro aluno; outras falhas guardam localmente.
       const status = (erro as { status?: number }).status
       if (status !== 409) {
         salvarPendente(CHAVE_PENDENTES, payload)

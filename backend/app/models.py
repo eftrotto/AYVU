@@ -23,18 +23,14 @@ class Usuario(Base):
     senha_hash: Mapped[str] = mapped_column(String(255))
     tipo: Mapped[TipoUsuario] = mapped_column(Enum(TipoUsuario), index=True)
 
-    # Nulo até o aluno entrar numa Oka com o código de convite (ver Oka
-    # abaixo) ou pra professores sem Oka fixa (ex.: coordenação).
+    # Nulo até o aluno entrar numa Oka com o código de convite.
     oka_id: Mapped[int | None] = mapped_column(ForeignKey("okas.id"), index=True, nullable=True)
 
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class Oka(Base):
-    """
-    A "ilha"/turma de um professor — os alunos entram usando o código de
-    convite (ver routers/okas.py). Um professor pode ter várias Okas.
-    """
+    """A "ilha"/turma de um professor — alunos entram via código de convite."""
 
     __tablename__ = "okas"
 
@@ -50,16 +46,13 @@ class RekoCheckin(Base):
 
     __tablename__ = "reko_checkins"
     __table_args__ = (
-        # no máximo um check-in por aluno por dia.
         UniqueConstraint("user_id", "data", name="uq_reko_checkin_user_data"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    # FK de verdade agora que existe login (routers/reko.py deriva isso do
-    # token via deps.get_usuario_atual — nunca aceita user_id vindo do
-    # cliente). A Oka do check-in é lida via usuarios.oka_id no momento
-    # da agregação, então não é duplicada aqui.
+    # A Oka do check-in é lida via usuarios.oka_id no momento da agregação,
+    # então não é duplicada aqui.
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
     data: Mapped[date] = mapped_column(Date, index=True)
@@ -79,20 +72,15 @@ class RekoCheckin(Base):
 
 
 class MacuAvatar(Base):
-    """
-    Configuração salva do avatar de corpo inteiro do aluno (sprites LPC — ver
-    frontend/src/features/macu). Um registro por aluno; salvar de novo
-    substitui o anterior (upsert em routers/macu.py).
-    """
+    """Um registro por aluno; salvar de novo substitui o anterior (upsert em routers/macu.py)."""
 
     __tablename__ = "macu_avatares"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), unique=True, index=True)
 
-    # Guardado como JSON serializado (texto) em vez de uma coluna por campo:
-    # o formato do avatar é decidido pelo frontend (estilos/cores do LPC) e
-    # pode ganhar novas opções sem precisar de migração de banco.
+    # JSON serializado em vez de uma coluna por campo: o formato é decidido
+    # pelo frontend e pode ganhar opção nova sem migração de banco.
     avatar_config: Mapped[str] = mapped_column(Text)
 
     atualizado_em: Mapped[datetime] = mapped_column(
@@ -139,25 +127,19 @@ class Conteudo(Base):
     tipo: Mapped[TipoConteudo] = mapped_column(Enum(TipoConteudo), index=True)
     titulo: Mapped[str] = mapped_column(String(200))
 
-    # Texto (leitura/desafio) ou URL (video) — o significado depende de `tipo`.
-    # Pro tipo "jogo", guarda o mini-quiz serializado como JSON (ver seed.py
-    # e routers/ayvu.py para o formato esperado).
+    # Texto (leitura/desafio), URL (video) ou mini-quiz em JSON (jogo) —
+    # o significado depende de `tipo` (ver seed.py).
     corpo_ou_url: Mapped[str] = mapped_column(Text)
 
-    # Só uma dica visual de ordem (numeração sugerida); o aluno pode abrir
-    # qualquer conteúdo do tema na ordem que quiser, isso nunca bloqueia.
+    # Só dica visual; o aluno pode abrir os conteúdos do tema em qualquer ordem.
     ordem_sugerida: Mapped[int] = mapped_column(Integer, default=0)
 
     tema: Mapped["Tema"] = relationship(back_populates="conteudos")
 
 
 class PesquisaAyvu(Base):
-    """
-    Um termo pesquisado pelo aluno na Lagoa do Ayvu (cada mergulho gera um
-    registro). Alimenta a visão do professor por aluno em routers/okas.py
-    — aqui, ao contrário do Reko, o pedido foi visibilidade individual
-    mesmo, não agregada.
-    """
+    """Alimenta a visão do professor por aluno em routers/okas.py — ao
+    contrário do Reko, aqui a visibilidade é individual, não agregada."""
 
     __tablename__ = "pesquisas_ayvu"
 
@@ -168,19 +150,15 @@ class PesquisaAyvu(Base):
 
 
 class Nota(Base):
-    """
-    Uma nota lançada pelo professor pra um aluno da Oka dele (o "boletim").
-    Diferente do Reko: aqui é sempre individual mesmo, visível tanto pro
-    professor que lançou quanto pro próprio aluno.
-    """
+    """Uma nota do boletim. Diferente do Reko: aqui é sempre individual,
+    visível tanto pro professor quanto pro próprio aluno."""
 
     __tablename__ = "notas"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     aluno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
-    # Guardado junto pra não precisar de outro join na hora de checar se o
-    # professor logado é dono da Oka desse boletim (ver routers/notas.py).
+    # Guardado junto pra não precisar de join extra ao checar posse (routers/notas.py).
     oka_id: Mapped[int] = mapped_column(ForeignKey("okas.id"), index=True)
 
     disciplina: Mapped[str] = mapped_column(String(100))
@@ -192,11 +170,7 @@ class Nota(Base):
 
 
 class MensagemChat(Base):
-    """
-    Uma mensagem do chat em grupo de uma Oka — só entre alunos da mesma
-    Oka (ver routers/okas.py). O professor da Oka pode ler o histórico
-    (supervisão/segurança), mas nunca enviar mensagem nele.
-    """
+    """Chat em grupo de uma Oka — o professor pode ler (supervisão), nunca enviar."""
 
     __tablename__ = "mensagens_chat"
 
@@ -216,8 +190,6 @@ class ProgressoAluno(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    # FK de verdade agora que existe login (ver nota em RekoCheckin.user_id).
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
 
     conteudo_id: Mapped[int] = mapped_column(ForeignKey("conteudos.id"), index=True)
@@ -228,19 +200,6 @@ class ProgressoAluno(Base):
 
     conteudo: Mapped["Conteudo"] = relationship()
 
-    # GANCHO FUTURO — interesses predominantes para a equipe pedagógica
-    #
-    # Cruzando `progresso_aluno` com `conteudos`/`temas`/`usuarios.oka_id`,
-    # dá pra calcular quais temas mais prendem a atenção de uma Oka (ex.:
-    # % de conteúdos concluídos por tema, agregado pela Oka). Igual ao
-    # Reko, isso deve SEMPRE ser agregado por Oka, nunca devolver o
-    # detalhe de um aluno específico para o professor.
-    #
-    # Esboço de como isso entraria (NÃO implementado ainda):
-    #
-    #   GET /ayvu/interesses/{oka_id}  (só professor, mesmo padrão do Reko)
-    #   -> agrupar progresso_aluno dos alunos da Oka (join por
-    #      usuarios.oka_id) por tema_id, contar quantos concluíram pelo
-    #      menos 1 conteúdo daquele tema, devolver só a lista de temas
-    #      ordenada por popularidade (sem nomes de aluno nem contagem
-    #      individual).
+    # Gancho futuro: dá pra cruzar isso com conteudos/temas/usuarios.oka_id
+    # pra calcular interesses predominantes por Oka — sempre agregado,
+    # nunca por aluno (mesmo princípio do Reko).
