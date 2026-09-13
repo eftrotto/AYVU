@@ -1,9 +1,5 @@
-/**
- * Client HTTP único do AYVU — toda chamada ao backend passa por aqui.
- * Centraliza: header de autenticação, parse de erro padronizado (o backend
- * sempre responde erro como {"detail": ...}, string ou lista de validação),
- * e o tipo de retorno de cada chamada.
- */
+/** Client HTTP único — centraliza header de autenticação e parse de erro
+ * (o backend sempre responde erro como {"detail": ...}). */
 import {
   type AlunoDaOka,
   type ColegaDaOka,
@@ -27,6 +23,11 @@ import {
   type VideoSugerido,
 } from '../types/api'
 import { obterToken } from './authStorage'
+
+// Em dev, caminho relativo + proxy do Vite (vite.config.ts) resolve pro
+// backend local. Em produção (frontend e backend em domínios Vercel
+// separados) não há proxy, então precisa da URL absoluta do backend.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 
 export class ApiError extends Error {
   status: number
@@ -74,7 +75,7 @@ async function requisitar<T>(caminho: string, opcoes: OpcoesRequisicao = {}): Pr
 
   let resposta: Response
   try {
-    resposta = await fetch(caminho, {
+    resposta = await fetch(`${API_BASE_URL}${caminho}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -175,7 +176,6 @@ export const okaApi = {
 // ---------------------------------------------------------------------------
 
 export const chatApi = {
-  // Chat da própria Oka (aluno).
   listarMinha: () => requisitar<MensagemChat[]>('/okas/minha/chat'),
 
   enviar: (texto: string) =>
