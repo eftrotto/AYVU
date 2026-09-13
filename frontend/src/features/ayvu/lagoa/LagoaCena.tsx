@@ -118,6 +118,20 @@ export function LagoaCena() {
             </button>
             <button
               type="button"
+              onClick={() => navigate('/aluno/oka')}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              👥 Oka
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/aluno/boletim')}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              📋 Boletim
+            </button>
+            <button
+              type="button"
               onClick={() => setMostrarEntrarTurma((atual) => !atual)}
               className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
             >

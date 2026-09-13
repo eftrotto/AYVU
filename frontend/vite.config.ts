@@ -15,6 +15,7 @@ export default defineConfig({
       '/reko': 'http://127.0.0.1:8000',
       '/ayvu': 'http://127.0.0.1:8000',
       '/turmas': 'http://127.0.0.1:8000',
+      '/notas': 'http://127.0.0.1:8000',
     },
   },
 })

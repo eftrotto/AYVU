@@ -5,9 +5,13 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
-import { ApiError, rekoApi, turmaApi } from '../../lib/apiClient'
+import { ApiError, notaApi, rekoApi, turmaApi } from '../../lib/apiClient'
 import { useAuth } from '../auth/AuthContext'
-import type { RekoMedias, SinalBemEstar, Turma } from '../../types/api'
+import type { NotaPayload, RekoMedias, SinalBemEstar, Turma } from '../../types/api'
+
+function hoje(): string {
+  return new Date().toISOString().slice(0, 10)
+}
 
 const ROTULOS_COMPETENCIA: Record<keyof RekoMedias, string> = {
   autoconhecimento: 'Autoconhecimento',
@@ -31,6 +35,7 @@ export function ProfessorDashboard() {
   const [turmaSelecionadaId, setTurmaSelecionadaId] = useState<number | null>(null)
   const [nomeNovaTurma, setNomeNovaTurma] = useState('')
   const [codigoCopiado, setCodigoCopiado] = useState(false)
+  const [boletimDeAlunoId, setBoletimDeAlunoId] = useState<number | null>(null)
 
   const turmasQuery = useQuery({ queryKey: ['turmas'], queryFn: turmaApi.listarMinhas })
 
@@ -189,6 +194,20 @@ export function ProfessorDashboard() {
                             ))}
                           </div>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setBoletimDeAlunoId((atual) => (atual === aluno.id ? null : aluno.id))
+                          }
+                          className="mt-3 text-xs font-bold text-secondary hover:text-accent"
+                        >
+                          {boletimDeAlunoId === aluno.id ? '‹ Fechar boletim' : '📋 Ver boletim'}
+                        </button>
+
+                        {boletimDeAlunoId === aluno.id && (
+                          <BoletimDoAluno alunoId={aluno.id} nomeAluno={aluno.nome} />
+                        )}
                       </div>
                     )
                   })}
@@ -254,5 +273,99 @@ export function ProfessorDashboard() {
         </div>
       </div>
     </AppShell>
+  )
+}
+
+function BoletimDoAluno({ alunoId, nomeAluno }: { alunoId: number; nomeAluno: string }) {
+  const queryClient = useQueryClient()
+  const [disciplina, setDisciplina] = useState('')
+  const [prova, setProva] = useState('')
+  const [nota, setNota] = useState('')
+  const [data, setData] = useState(hoje())
+
+  const notasQuery = useQuery({ queryKey: ['notas', alunoId], queryFn: () => notaApi.doAluno(alunoId) })
+
+  const lancarNota = useMutation({
+    mutationFn: (payload: NotaPayload) => notaApi.lancar(alunoId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notas', alunoId] })
+      setDisciplina('')
+      setProva('')
+      setNota('')
+    },
+  })
+
+  function aoSubmeter(e: React.FormEvent) {
+    e.preventDefault()
+    const notaNumero = Number(nota.replace(',', '.'))
+    if (!disciplina.trim() || !prova.trim() || Number.isNaN(notaNumero)) return
+    lancarNota.mutate({ disciplina: disciplina.trim(), prova: prova.trim(), nota: notaNumero, data })
+  }
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-card p-4">
+      <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">
+        Boletim de {nomeAluno}
+      </h3>
+
+      {notasQuery.isLoading && <Spinner rotulo="Carregando notas..." />}
+
+      {notasQuery.data && notasQuery.data.length === 0 && (
+        <p className="mb-3 text-sm text-text-soft">Nenhuma nota lançada ainda.</p>
+      )}
+
+      {notasQuery.data && notasQuery.data.length > 0 && (
+        <div className="mb-4 flex flex-col gap-1.5">
+          {notasQuery.data.map((n) => (
+            <div key={n.id} className="flex items-center justify-between gap-3 text-sm">
+              <span className="text-text">
+                {n.disciplina} — {n.prova}
+              </span>
+              <span className="font-bold text-text">{n.nota.toFixed(1)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <form onSubmit={aoSubmeter} className="flex flex-wrap items-end gap-2">
+        <input
+          value={disciplina}
+          onChange={(e) => setDisciplina(e.target.value)}
+          placeholder="Disciplina"
+          className="w-32 rounded-xl border border-border bg-[#fffaf3] px-3 py-2 text-sm outline-none focus:border-accent"
+        />
+        <input
+          value={prova}
+          onChange={(e) => setProva(e.target.value)}
+          placeholder="Prova"
+          className="w-32 rounded-xl border border-border bg-[#fffaf3] px-3 py-2 text-sm outline-none focus:border-accent"
+        />
+        <input
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          placeholder="Nota"
+          inputMode="decimal"
+          className="w-20 rounded-xl border border-border bg-[#fffaf3] px-3 py-2 text-sm outline-none focus:border-accent"
+        />
+        <input
+          type="date"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+          className="rounded-xl border border-border bg-[#fffaf3] px-3 py-2 text-sm outline-none focus:border-accent"
+        />
+        <Button
+          type="submit"
+          disabled={lancarNota.isPending || !disciplina.trim() || !prova.trim() || !nota.trim()}
+        >
+          {lancarNota.isPending ? 'Lançando...' : 'Lançar'}
+        </Button>
+      </form>
+
+      {lancarNota.isError && (
+        <p className="mt-2 text-xs font-semibold text-erro">
+          {lancarNota.error instanceof ApiError ? lancarNota.error.message : 'Não foi possível lançar a nota.'}
+        </p>
+      )}
+    </div>
   )
 }

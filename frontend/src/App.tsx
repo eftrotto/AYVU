@@ -8,6 +8,8 @@ import { RekoPage } from './features/reko/RekoPage'
 import { LagoaCena } from './features/ayvu/lagoa/LagoaCena'
 import { ComoEstudarPage } from './features/ayvu/lagoa/ComoEstudarPage'
 import { TemaExploracaoPage } from './features/ayvu/lagoa/TemaExploracaoPage'
+import { OkaPage } from './features/oka/OkaPage'
+import { MeuBoletimPage } from './features/boletim/MeuBoletimPage'
 
 export default function App() {
   return (
@@ -59,6 +61,23 @@ export default function App() {
         element={
           <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <TemaExploracaoPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/aluno/oka"
+        element={
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
+            <OkaPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/boletim"
+        element={
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
+            <MeuBoletimPage />
           </ProtectedRoute>
         }
       />

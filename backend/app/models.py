@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -164,6 +164,30 @@ class PesquisaAyvu(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
     termo: Mapped[str] = mapped_column(String(200))
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Nota(Base):
+    """
+    Uma nota lançada pelo professor pra um aluno da turma dele (o "boletim").
+    Diferente do Reko: aqui é sempre individual mesmo, visível tanto pro
+    professor que lançou quanto pro próprio aluno.
+    """
+
+    __tablename__ = "notas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    aluno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+
+    # Guardado junto pra não precisar de outro join na hora de checar se o
+    # professor logado é dono da turma desse boletim (ver routers/notas.py).
+    turma_id: Mapped[int] = mapped_column(ForeignKey("turmas.id"), index=True)
+
+    disciplina: Mapped[str] = mapped_column(String(100))
+    prova: Mapped[str] = mapped_column(String(150))
+    nota: Mapped[float] = mapped_column(Float)
+    data: Mapped[date] = mapped_column(Date)
+
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 

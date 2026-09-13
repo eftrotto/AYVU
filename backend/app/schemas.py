@@ -230,3 +230,35 @@ class AlunoDaTurmaOut(BaseModel):
     sinal_bem_estar: str
     frase_bem_estar: str
     temas_pesquisados: list[str]
+
+
+class ColegaDaTurmaOut(BaseModel):
+    # Oka — visão do aluno dos colegas da própria ilha. De propósito NÃO
+    # tem temas_pesquisados nem sinal_bem_estar aqui: entre alunos, só
+    # nome + Macu, nada do que só o professor pode ver.
+    id: int
+    nome: str
+    avatar_config: dict[str, Any]
+
+
+# ---------------------------------------------------------------------------
+# Notas — o boletim
+# ---------------------------------------------------------------------------
+
+
+class NotaCreate(BaseModel):
+    disciplina: str = Field(min_length=1, max_length=100)
+    prova: str = Field(min_length=1, max_length=150)
+    nota: float = Field(ge=0, le=10)
+    data: date
+
+
+class NotaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    aluno_id: int
+    disciplina: str
+    prova: str
+    nota: float
+    data: date

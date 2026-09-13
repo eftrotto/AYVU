@@ -1,3 +1,4 @@
+import json
 import random
 import string
 
@@ -72,6 +73,37 @@ def entrar_na_turma(
     aluno.turma_id = turma.id
     db.commit()
     return schemas.EntrarTurmaOut(turma_id=turma.id, nome_turma=turma.nome)
+
+
+@router.get("/minha/colegas", response_model=list[schemas.ColegaDaTurmaOut])
+def listar_colegas(
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    """
+    Oka — os colegas de ilha do próprio aluno. De propósito só nome + Macu,
+    sem temas pesquisados nem sinal de bem-estar (isso é só pro professor,
+    ver listar_alunos_da_turma).
+    """
+    if aluno.turma_id is None:
+        return []
+
+    colegas = db.execute(
+        select(models.Usuario).where(
+            models.Usuario.turma_id == aluno.turma_id,
+            models.Usuario.id != aluno.id,
+        )
+    ).scalars().all()
+
+    resultado = []
+    for colega in colegas:
+        avatar = db.execute(
+            select(models.MacuAvatar).where(models.MacuAvatar.user_id == colega.id)
+        ).scalar_one_or_none()
+        config = json.loads(avatar.avatar_config) if avatar else {}
+        resultado.append(schemas.ColegaDaTurmaOut(id=colega.id, nome=colega.nome, avatar_config=config))
+
+    return resultado
 
 
 # Limiares da "média dos últimos check-ins" que viram o sinal de bem-estar —

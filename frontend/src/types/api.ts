@@ -186,3 +186,27 @@ export interface AlunoDaTurma {
   frase_bem_estar: string
   temas_pesquisados: string[]
 }
+
+// Oka — colegas de ilha do próprio aluno (sem sinal_bem_estar/temas: isso é
+// só pro professor, ver AlunoDaTurma).
+export interface ColegaDaTurma {
+  id: number
+  nome: string
+  avatar_config: Partial<MacuAvatarConfig>
+}
+
+// ---------------------------------------------------------------------------
+// Notas — o boletim
+// ---------------------------------------------------------------------------
+
+export interface NotaPayload {
+  disciplina: string
+  prova: string
+  nota: number
+  data: string // YYYY-MM-DD
+}
+
+export interface Nota extends NotaPayload {
+  id: number
+  aluno_id: number
+}
