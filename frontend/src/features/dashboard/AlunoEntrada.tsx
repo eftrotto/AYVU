@@ -1,4 +1,5 @@
 import { Navigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import { jaFezCheckinHoje } from '../reko/rekoStorage'
 
 /**
@@ -7,5 +8,7 @@ import { jaFezCheckinHoje } from '../reko/rekoStorage'
  * estar feito: o check-in emocional vem sempre primeiro.
  */
 export function AlunoEntrada() {
-  return <Navigate to={jaFezCheckinHoje() ? '/aluno/ayvu' : '/aluno/reko'} replace />
+  const { usuario } = useAuth()
+  const feito = usuario ? jaFezCheckinHoje(usuario.id) : false
+  return <Navigate to={feito ? '/aluno/ayvu' : '/aluno/reko'} replace />
 }

@@ -6,6 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { ProgressBar } from '../../components/ui/ProgressBar'
 import { rekoApi } from '../../lib/apiClient'
 import { salvarPendente } from '../../lib/filaPendente'
+import { useAuth } from '../auth/AuthContext'
 import type { RekoCheckinPayload } from '../../types/api'
 import { OPCOES_LIKERT, PERGUNTAS, type ChaveCompetencia } from './perguntas'
 import { dataDeHoje, jaFezCheckinHoje, marcarCheckinDeHoje } from './rekoStorage'
@@ -16,7 +17,8 @@ type Respostas = Partial<Record<ChaveCompetencia, number>>
 
 export function RekoPage() {
   const navigate = useNavigate()
-  const [jaFeito] = useState(jaFezCheckinHoje)
+  const { usuario } = useAuth()
+  const [jaFeito] = useState(() => (usuario ? jaFezCheckinHoje(usuario.id) : false))
   const [indice, setIndice] = useState(0)
   const [respostas, setRespostas] = useState<Respostas>({})
   const [concluido, setConcluido] = useState(false)
@@ -49,7 +51,7 @@ export function RekoPage() {
       }
     }
 
-    marcarCheckinDeHoje()
+    if (usuario) marcarCheckinDeHoje(usuario.id)
     setConcluido(true)
   }
 

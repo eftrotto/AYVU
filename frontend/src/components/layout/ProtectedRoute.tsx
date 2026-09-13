@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, tipoEsperado, exigirRekoHoje }: Prote
     // logado com o tipo errado: manda pra própria área dele, não pro login.
     return <Navigate to={usuario.tipo === 'professor' ? '/professor' : '/aluno'} replace />
   }
-  if (exigirRekoHoje && usuario.tipo === 'aluno' && !jaFezCheckinHoje()) {
+  if (exigirRekoHoje && usuario.tipo === 'aluno' && !jaFezCheckinHoje(usuario.id)) {
     return <Navigate to="/aluno/reko" replace />
   }
 
