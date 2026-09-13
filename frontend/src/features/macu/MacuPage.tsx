@@ -18,7 +18,6 @@ import {
   ESTILOS_DE_SOBRANCELHA,
   GENEROS,
   TONS_DE_PELE,
-  caminhoDaCamada,
 } from './lpcData'
 
 function sortear<T extends { valor: string }>(lista: readonly T[]): string {
@@ -113,7 +112,7 @@ export function MacuPage() {
 
           <div className="flex flex-col gap-6 rounded-3xl border border-border bg-card p-7 shadow-warm">
             <Grupo titulo="Corpo">
-              <Campo rotulo="Base do corpo">
+              <Campo rotulo="Sexo">
                 <div className="flex gap-2">
                   {GENEROS.map((genero) => (
                     <button
@@ -121,15 +120,14 @@ export function MacuPage() {
                       type="button"
                       title={genero.rotulo}
                       onClick={() => atualizar('gender', genero.valor as MacuAvatarConfig['gender'])}
-                      className={`pixelated h-14 w-14 rounded-xl bg-[#fffaf3] bg-no-repeat ${
-                        config.gender === genero.valor ? 'ring-2 ring-accent' : ''
+                      className={`flex h-14 w-14 items-center justify-center rounded-xl border text-2xl font-bold transition-colors ${
+                        config.gender === genero.valor
+                          ? 'border-accent bg-accent-soft text-accent'
+                          : 'border-border bg-[#fffaf3] text-text-soft hover:border-accent'
                       }`}
-                      style={{
-                        backgroundImage: `url("${caminhoDaCamada('body', { ...config, gender: genero.valor as MacuAvatarConfig['gender'] })}")`,
-                        backgroundSize: '832px auto',
-                        backgroundPosition: '0 -640px',
-                      }}
-                    />
+                    >
+                      {genero.simbolo}
+                    </button>
                   ))}
                 </div>
               </Campo>

@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { authApi } from '../../lib/apiClient'
 import { limparSessao, obterToken, obterUsuarioSalvo, salvarSessao } from '../../lib/authStorage'
+import { precarregarAvatarPadrao } from '../macu/lpcData'
 import type { CadastroPayload, Usuario } from '../../types/api'
 
 interface AuthContextValue {
@@ -19,6 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // "pisca" de tela de login antes de descobrir que já existe sessão.
     return obterToken() ? obterUsuarioSalvo() : null
   })
+
+  useEffect(() => {
+    if (usuario?.tipo === 'aluno') precarregarAvatarPadrao()
+  }, [usuario])
 
   const fazerLogin = useCallback(async (email: string, senha: string) => {
     const resposta = await authApi.login({ email, senha })

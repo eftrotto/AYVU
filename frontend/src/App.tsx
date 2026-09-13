@@ -25,7 +25,7 @@ export default function App() {
       <Route
         path="/aluno/macu"
         element={
-          <ProtectedRoute tipoEsperado="aluno">
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <MacuPage />
           </ProtectedRoute>
         }
@@ -41,7 +41,7 @@ export default function App() {
       <Route
         path="/aluno/ayvu"
         element={
-          <ProtectedRoute tipoEsperado="aluno">
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <LagoaCena />
           </ProtectedRoute>
         }
@@ -49,7 +49,7 @@ export default function App() {
       <Route
         path="/aluno/ayvu/estudar/:tema"
         element={
-          <ProtectedRoute tipoEsperado="aluno">
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <ComoEstudarPage />
           </ProtectedRoute>
         }
@@ -57,7 +57,7 @@ export default function App() {
       <Route
         path="/aluno/ayvu/explorar/:tema/:modo"
         element={
-          <ProtectedRoute tipoEsperado="aluno">
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <TemaExploracaoPage />
           </ProtectedRoute>
         }

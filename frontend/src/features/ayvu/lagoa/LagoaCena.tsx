@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { macuApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
-import { jaFezCheckinHoje } from '../../reko/rekoStorage'
 import { Ondulacao } from './Ondulacao'
 
 type Fase = 'ocioso' | 'caindo' | 'ondulando' | 'pulando' | 'mergulhando' | 'saindo'
@@ -84,12 +83,6 @@ export function LagoaCena() {
     setFase('caindo')
   }
 
-  // A Lagoa só libera depois do check-in do Reko de hoje — se alguém cair
-  // aqui direto (link salvo, F5...) sem ter feito, volta pro Reko primeiro.
-  if (!jaFezCheckinHoje()) {
-    return <Navigate to="/aluno/reko" replace />
-  }
-
   const emMovimento = fase !== 'ocioso'
   // Macu some só depois de já ter mergulhado (na fase 'saindo', quando a
   // "câmera" cobre a cena) — durante 'mergulhando' ele precisa continuar
@@ -119,7 +112,7 @@ export function LagoaCena() {
 
       <motion.div
         className="relative mx-auto h-full w-full max-w-[1200px]"
-        style={{ transformOrigin: '50% 62%' }}
+        style={{ transformOrigin: '50% 78%' }}
         animate={{ scale: fase === 'saindo' ? 1.9 : 1 }}
         transition={{ duration: 0.75, ease: 'easeIn' }}
       >
@@ -186,44 +179,92 @@ export function LagoaCena() {
           />
         </div>
 
-        {/* Postes de sustentação do pier, mergulhando na água */}
-        <div className="absolute z-[3] w-[2.5%] rounded-b-sm bg-[#4a2c18]" style={{ right: '10%', top: '50%', height: '18%' }} />
-        <div className="absolute z-[3] w-[2.5%] rounded-b-sm bg-[#4a2c18]" style={{ right: '34%', top: '50%', height: '18%' }} />
+        {/* Ilha — onde o Macu mora entre uma pesquisa e outra, no meio da lagoa */}
+        <div className="absolute z-[3]" style={{ left: '24%', top: '57%', width: '52%', height: '20%' }}>
+          {/* areia, base elíptica que "mergulha" na água */}
+          <div
+            className={`absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg ${
+              ehNoite ? 'bg-gradient-to-b from-[#6b6248] to-[#4a4433]' : 'bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]'
+            }`}
+          />
+          {/* grama, elipse menor por cima da areia */}
+          <div
+            className={`absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] ${
+              ehNoite ? 'bg-gradient-to-b from-[#2c4a2a] to-[#1e3620]' : 'bg-gradient-to-b from-[#5f9448] to-[#3f6c32]'
+            }`}
+          />
+          {/* tufos de grama e uma pedrinha, só decoração */}
+          <span
+            className={`absolute h-3 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
+            style={{ left: '22%', top: '8%', transform: 'rotate(-12deg)' }}
+          />
+          <span
+            className={`absolute h-3.5 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
+            style={{ left: '28%', top: '2%', transform: 'rotate(6deg)' }}
+          />
+          <span
+            className={`absolute h-2.5 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
+            style={{ right: '18%', top: '10%', transform: 'rotate(14deg)' }}
+          />
+          <span
+            className={`absolute h-3 w-4 rounded-full ${ehNoite ? 'bg-[#5c5847]' : 'bg-[#9a8b63]'}`}
+            style={{ left: '12%', bottom: '18%' }}
+          />
 
-        {/* Deck do pier */}
-        <div
-          className="absolute z-[4] rounded-[2px] bg-gradient-to-b from-[#9a6a45] to-[#6b4429] shadow-md"
-          style={{ right: '6%', top: '47%', width: '34%', height: '5.5%' }}
-        >
-          <div className="flex h-full w-full justify-evenly">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <span key={i} className="h-full w-px bg-black/25" />
+          {/* Coqueiro — do lado do Macu, sem encostar nele */}
+          <div className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 110, height: 150 }}>
+            {/* tronco, levemente curvado */}
+            <div
+              className={`absolute bottom-0 left-[30%] w-3 origin-bottom rounded-full ${
+                ehNoite ? 'bg-[#3a2a1c]' : 'bg-[#7a5636]'
+              }`}
+              style={{ height: '72%', transform: 'rotate(-10deg)' }}
+            />
+            {/* folhas, um leque de elipses saindo do topo do tronco */}
+            {[-65, -32, -2, 28, 58].map((angulo) => (
+              <span
+                key={angulo}
+                className="absolute rounded-[50%] border border-black/30 bg-[#2f7a2a]"
+                style={{
+                  left: '38%',
+                  top: '26%',
+                  width: 52,
+                  height: 14,
+                  transformOrigin: '0% 50%',
+                  transform: `rotate(${angulo}deg)`,
+                }}
+              />
             ))}
+            {/* cocos */}
+            <span
+              className={`absolute h-3 w-3 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
+              style={{ left: '33%', top: '31%' }}
+            />
+            <span
+              className={`absolute h-3 w-3 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
+              style={{ left: '41%', top: '34%' }}
+            />
           </div>
         </div>
 
-        {/* Macu na ponta do pier */}
+        {/* Macu na ilha */}
         {macuVisivel && (
           <motion.div
             className="absolute z-[5]"
-            style={{ right: '20%', top: '35%' }}
+            style={{ right: '45%', top: '50%' }}
             animate={
-              fase === 'ocioso'
-                ? { y: [0, -4, 0] }
-                : fase === 'pulando'
-                  ? { y: [0, -46, -14], rotate: [0, -8, 6] }
-                  : fase === 'mergulhando'
-                    ? { y: [-14, 30, 90], rotate: [6, 24, 45], scale: [1, 0.92, 0.55], opacity: [1, 1, 0] }
-                    : { y: 0 }
+              fase === 'pulando'
+                ? { y: [0, -46, -14], rotate: [0, -8, 6] }
+                : fase === 'mergulhando'
+                  ? { y: [-14, 30, 90], rotate: [6, 24, 45], scale: [1, 0.92, 0.55], opacity: [1, 1, 0] }
+                  : { y: 0 }
             }
             transition={
-              fase === 'ocioso'
-                ? { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
-                : fase === 'pulando'
-                  ? { duration: 0.48, ease: 'easeOut' }
-                  : fase === 'mergulhando'
-                    ? { duration: 0.72, ease: 'easeIn' }
-                    : { duration: 0.3 }
+              fase === 'pulando'
+                ? { duration: 0.48, ease: 'easeOut' }
+                : fase === 'mergulhando'
+                  ? { duration: 0.72, ease: 'easeIn' }
+                  : { duration: 0.3 }
             }
           >
             <AvatarStage config={config} tamanho={132} comMoldura={false} />
@@ -232,12 +273,12 @@ export function LagoaCena() {
 
         {/* ondulação da gota caindo na água */}
         {(fase === 'ondulando' || fase === 'pulando' || fase === 'mergulhando' || fase === 'saindo') && (
-          <Ondulacao x="50%" y="63%" tamanho={190} />
+          <Ondulacao x="50%" y="82%" tamanho={190} />
         )}
 
         {/* respingo do mergulho */}
         {(fase === 'mergulhando' || fase === 'saindo') && (
-          <Ondulacao x="63%" y="75%" tamanho={260} cor="rgba(255,255,255,0.8)" atraso={0.1} />
+          <Ondulacao x="36%" y="94%" tamanho={260} cor="rgba(255,255,255,0.8)" atraso={0.1} />
         )}
 
         {/* Barra de busca -> gota */}
