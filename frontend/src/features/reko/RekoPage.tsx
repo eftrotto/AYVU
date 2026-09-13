@@ -87,10 +87,11 @@ export function RekoPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10">
-      <img src="/assets/logo.png" alt="AYVU" className="mx-auto mb-6 h-8 w-auto" />
+    <div className="fixed inset-0 grid place-items-center overflow-y-auto bg-bg px-5 py-10">
+      <div className="w-full max-w-md">
+        <img src="/assets/logo.png" alt="AYVU" className="mx-auto mb-6 h-8 w-auto" />
 
-      <div className="rounded-3xl border border-border bg-card p-7 shadow-warm">
+        <div className="rounded-3xl border border-border bg-card p-7 shadow-warm">
         <div className="mb-7 flex items-center gap-3">
           <ProgressBar percentual={(indice / PERGUNTAS.length) * 100} />
           <span className="whitespace-nowrap text-xs font-bold text-text-soft">
@@ -114,7 +115,7 @@ export function RekoPage() {
                   key={opcao.valor}
                   type="button"
                   onClick={() => selecionar(pergunta.chave, opcao.valor)}
-                  className={`flex flex-1 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors sm:flex-col sm:items-center sm:gap-1.5 sm:text-center ${
+                  className={`flex min-w-0 flex-1 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors sm:flex-col sm:items-center sm:gap-1.5 sm:text-center ${
                     selecionada
                       ? 'border-accent bg-accent-soft'
                       : 'border-border bg-[#fffaf3] hover:border-accent'
@@ -138,16 +139,17 @@ export function RekoPage() {
           {enviando ? 'Enviando...' : ultimaPergunta ? 'Concluir' : 'Confirmar resposta'}
         </Button>
 
-        {indice > 0 && (
-          <button
-            type="button"
-            onClick={() => setIndice((i) => i - 1)}
-            disabled={enviando}
-            className="mt-4 text-sm font-bold text-text-soft hover:text-secondary disabled:opacity-40"
-          >
-            ‹ Voltar
-          </button>
-        )}
+          {indice > 0 && (
+            <button
+              type="button"
+              onClick={() => setIndice((i) => i - 1)}
+              disabled={enviando}
+              className="mt-4 text-sm font-bold text-text-soft hover:text-secondary disabled:opacity-40"
+            >
+              ‹ Voltar
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -165,13 +167,15 @@ function TelaCentro({
   children?: React.ReactNode
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10">
-      <img src="/assets/logo.png" alt="AYVU" className="mx-auto mb-6 h-8 w-auto" />
-      <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-card px-6 py-16 text-center shadow-warm">
-        <span className="text-4xl">{emoji}</span>
-        <h2 className="text-lg font-bold text-text">{titulo}</h2>
-        <p className="max-w-[32ch] text-sm text-text-soft">{texto}</p>
-        {children && <div className="mt-2">{children}</div>}
+    <div className="fixed inset-0 grid place-items-center overflow-y-auto bg-bg px-5 py-10">
+      <div className="w-full max-w-md">
+        <img src="/assets/logo.png" alt="AYVU" className="mx-auto mb-6 h-8 w-auto" />
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-border bg-card px-6 py-16 text-center shadow-warm">
+          <span className="text-4xl">{emoji}</span>
+          <h2 className="text-lg font-bold text-text">{titulo}</h2>
+          <p className="max-w-[32ch] text-sm text-text-soft">{texto}</p>
+          {children && <div className="mt-2">{children}</div>}
+        </div>
       </div>
     </div>
   )
