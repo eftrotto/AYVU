@@ -7,6 +7,8 @@ import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { ApiError, okaApi } from '../../lib/apiClient'
 import { AvatarStage } from '../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../macu/lpcData'
+import { ChatDaOka } from './ChatDaOka'
+import { useAuth } from '../auth/AuthContext'
 
 /**
  * Oka — quem mais está na mesma Oka. De propósito só mostra nome + Macu de
@@ -15,6 +17,7 @@ import { AVATAR_PADRAO } from '../macu/lpcData'
  */
 export function OkaPage() {
   const navigate = useNavigate()
+  const { usuario } = useAuth()
   const colegasQuery = useQuery({ queryKey: ['okas', 'minha', 'colegas'], queryFn: okaApi.listarColegas })
 
   return (
@@ -44,7 +47,7 @@ export function OkaPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
         {colegasQuery.data?.map((colega) => (
           <Card key={colega.id} className="flex flex-col items-center gap-2 p-4">
             <AvatarStage config={{ ...AVATAR_PADRAO, ...colega.avatar_config }} tamanho={80} comMoldura={false} />
@@ -52,6 +55,8 @@ export function OkaPage() {
           </Card>
         ))}
       </div>
+
+      {usuario?.oka_id != null && <ChatDaOka />}
     </AppShell>
   )
 }

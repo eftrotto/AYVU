@@ -191,6 +191,22 @@ class Nota(Base):
     criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class MensagemChat(Base):
+    """
+    Uma mensagem do chat em grupo de uma Oka — só entre alunos da mesma
+    Oka (ver routers/okas.py). O professor da Oka pode ler o histórico
+    (supervisão/segurança), mas nunca enviar mensagem nele.
+    """
+
+    __tablename__ = "mensagens_chat"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    oka_id: Mapped[int] = mapped_column(ForeignKey("okas.id"), index=True)
+    autor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    texto: Mapped[str] = mapped_column(String(1000))
+    criado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
 class ProgressoAluno(Base):
     """Marca se um aluno concluiu um conteúdo (N:N entre aluno e conteúdo)."""
 

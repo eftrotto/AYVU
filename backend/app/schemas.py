@@ -241,6 +241,19 @@ class ColegaDaOkaOut(BaseModel):
     avatar_config: dict[str, Any]
 
 
+class MensagemChatCreate(BaseModel):
+    texto: str = Field(min_length=1, max_length=1000)
+
+
+class MensagemChatOut(BaseModel):
+    id: int
+    oka_id: int
+    autor_id: int
+    autor_nome: str
+    texto: str
+    criado_em: datetime
+
+
 # ---------------------------------------------------------------------------
 # Notas — o boletim
 # ---------------------------------------------------------------------------

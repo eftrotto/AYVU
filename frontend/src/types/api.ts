@@ -195,6 +195,15 @@ export interface ColegaDaOka {
   avatar_config: Partial<MacuAvatarConfig>
 }
 
+export interface MensagemChat {
+  id: number
+  oka_id: number
+  autor_id: number
+  autor_nome: string
+  texto: string
+  criado_em: string
+}
+
 // ---------------------------------------------------------------------------
 // Notas — o boletim
 // ---------------------------------------------------------------------------

@@ -106,6 +106,68 @@ def listar_colegas(
     return resultado
 
 
+_QUANTIDADE_MENSAGENS_CHAT = 200
+
+
+def _montar_mensagens_out(db: Session, mensagens: list[models.MensagemChat]) -> list[schemas.MensagemChatOut]:
+    autor_ids = {m.autor_id for m in mensagens}
+    autores = {
+        u.id: u.nome
+        for u in db.execute(select(models.Usuario).where(models.Usuario.id.in_(autor_ids))).scalars()
+    } if autor_ids else {}
+
+    return [
+        schemas.MensagemChatOut(
+            id=m.id,
+            oka_id=m.oka_id,
+            autor_id=m.autor_id,
+            autor_nome=autores.get(m.autor_id, "?"),
+            texto=m.texto,
+            criado_em=m.criado_em,
+        )
+        for m in mensagens
+    ]
+
+
+@router.get("/minha/chat", response_model=list[schemas.MensagemChatOut])
+def listar_chat_da_minha_oka(
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    """Histórico do chat em grupo da Oka do aluno logado (mais antiga primeiro)."""
+    if aluno.oka_id is None:
+        return []
+
+    mensagens = (
+        db.execute(
+            select(models.MensagemChat)
+            .where(models.MensagemChat.oka_id == aluno.oka_id)
+            .order_by(models.MensagemChat.criado_em.desc())
+            .limit(_QUANTIDADE_MENSAGENS_CHAT)
+        )
+        .scalars()
+        .all()
+    )
+    return _montar_mensagens_out(db, list(reversed(mensagens)))
+
+
+@router.post("/minha/chat", response_model=schemas.MensagemChatOut, status_code=201)
+def enviar_mensagem_chat(
+    dados: schemas.MensagemChatCreate,
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    """Aluno manda uma mensagem no chat em grupo da própria Oka."""
+    if aluno.oka_id is None:
+        raise HTTPException(status_code=400, detail="Você precisa estar numa Oka pra usar o chat.")
+
+    mensagem = models.MensagemChat(oka_id=aluno.oka_id, autor_id=aluno.id, texto=dados.texto.strip())
+    db.add(mensagem)
+    db.commit()
+    db.refresh(mensagem)
+    return _montar_mensagens_out(db, [mensagem])[0]
+
+
 # Limiares da "média dos últimos check-ins" que viram o sinal de bem-estar —
 # nunca a nota exata é exposta pro professor, só essas 3 categorias.
 _LIMIAR_ATENCAO = 2.5
@@ -197,3 +259,31 @@ def listar_alunos_da_oka(
         )
 
     return resultado
+
+
+@router.get("/{oka_id}/chat", response_model=list[schemas.MensagemChatOut])
+def listar_chat_da_oka_professor(
+    oka_id: int,
+    db: Session = Depends(get_db),
+    professor: models.Usuario = Depends(exigir_professor),
+):
+    """
+    Visão do professor do chat da Oka — só leitura, pra supervisão/segurança.
+    O professor nunca manda mensagem aqui (ver enviar_mensagem_chat, restrito
+    a alunos).
+    """
+    oka = db.get(models.Oka, oka_id)
+    if oka is None or oka.professor_id != professor.id:
+        raise HTTPException(status_code=404, detail="Oka não encontrada.")
+
+    mensagens = (
+        db.execute(
+            select(models.MensagemChat)
+            .where(models.MensagemChat.oka_id == oka_id)
+            .order_by(models.MensagemChat.criado_em.desc())
+            .limit(_QUANTIDADE_MENSAGENS_CHAT)
+        )
+        .scalars()
+        .all()
+    )
+    return _montar_mensagens_out(db, list(reversed(mensagens)))

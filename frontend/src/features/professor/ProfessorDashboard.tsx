@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
-import { ApiError, notaApi, okaApi, rekoApi } from '../../lib/apiClient'
+import { ApiError, chatApi, notaApi, okaApi, rekoApi } from '../../lib/apiClient'
 import { useAuth } from '../auth/AuthContext'
 import type { NotaPayload, Oka, RekoMedias, SinalBemEstar } from '../../types/api'
 
@@ -268,11 +268,50 @@ export function ProfessorDashboard() {
                   </div>
                 )}
               </Card>
+
+              <ChatDaOkaProfessor okaId={okaSelecionada.id} />
             </>
           )}
         </div>
       </div>
     </AppShell>
+  )
+}
+
+function horarioMensagem(isoString: string): string {
+  return new Date(isoString).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+function ChatDaOkaProfessor({ okaId }: { okaId: number }) {
+  const chatQuery = useQuery({
+    queryKey: ['okas', okaId, 'chat'],
+    queryFn: () => chatApi.listarDaOka(okaId),
+    refetchInterval: 8000,
+  })
+
+  return (
+    <Card className="p-5">
+      <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">💬 Chat da Oka</h2>
+      <p className="mb-3 text-xs text-text-soft">Só leitura, pra acompanhar a conversa dos alunos.</p>
+
+      {chatQuery.isLoading && <Spinner rotulo="Carregando chat..." />}
+
+      {chatQuery.data && chatQuery.data.length === 0 && (
+        <p className="text-sm text-text-soft">Ninguém mandou mensagem ainda nessa Oka.</p>
+      )}
+
+      {chatQuery.data && chatQuery.data.length > 0 && (
+        <div className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-xl border border-border bg-[#fffaf3] p-3">
+          {chatQuery.data.map((mensagem) => (
+            <div key={mensagem.id} className="text-sm">
+              <span className="font-bold text-text">{mensagem.autor_nome}</span>{' '}
+              <span className="text-[10px] text-text-soft">{horarioMensagem(mensagem.criado_em)}</span>
+              <p className="text-text">{mensagem.texto}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   )
 }
 
