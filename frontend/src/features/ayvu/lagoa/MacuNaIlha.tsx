@@ -1,11 +1,12 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react'
-import { motion, useAnimationFrame, useMotionValue, type PanInfo, type TargetAndTransition, type Transition } from 'framer-motion'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { motion, useAnimationFrame, useMotionValue, type TargetAndTransition, type Transition } from 'framer-motion'
 import type { MacuAvatarConfig } from '../../../types/api'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { carregarPosicao, salvarPosicao } from './ilhaStorage'
 
 export interface MacuNaIlhaHandle {
   resetarParaPadrao: () => void
+  moverPara: (clienteX: number, clienteY: number) => void
 }
 
 interface MacuNaIlhaProps {
@@ -20,12 +21,10 @@ interface MacuNaIlhaProps {
   tamanho?: number
 }
 
-const VELOCIDADE_PX_POR_S = 230
+const VELOCIDADE_PX_POR_S = 260
 const RAIO_MACU = 30
 const RAIO_EXCLUSAO_ARVORE = 60
-const TECLAS_MOVIMENTO = new Set([
-  'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd',
-])
+const DISTANCIA_CHEGADA = 1.5
 
 interface Limites {
   cx: number
@@ -36,12 +35,18 @@ interface Limites {
   arvoreCy: number
 }
 
+interface Marcador {
+  id: number
+  x: number
+  y: number
+}
+
 /**
- * Macu livre na ilha — movimento contínuo via teclado (setas/WASD) e
- * arrastar/toque, restrito a uma elipse (a grama, medida via gramaRef) com
- * uma zona de exclusão circular ao redor do coqueiro (arvoreRef). A posição
- * é guardada como fração 0-1 da elipse (ver ilhaStorage.ts), então continua
- * válida se a tela for redimensionada entre sessões.
+ * Macu na ilha — clique/toque num ponto da ilha e ele caminha até lá (estilo
+ * "point and click"), restrito a uma elipse (a grama, medida via gramaRef)
+ * com uma zona de exclusão circular ao redor do coqueiro (arvoreRef). A
+ * posição é guardada como fração 0-1 da elipse (ver ilhaStorage.ts), então
+ * continua válida se a tela for redimensionada entre sessões.
  */
 export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function MacuNaIlha(
   { config, ilhaRef, gramaRef, arvoreRef, ativo, userId, animarPulo, transicaoPulo, tamanho = 132 },
@@ -52,9 +57,10 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   const limitesRef = useRef<Limites>({ cx: 0, cy: 0, rx: 0, ry: 0, arvoreCx: -9999, arvoreCy: -9999 })
   const posicaoPadraoRef = useRef({ x: 0, y: 0 })
   const prontoRef = useRef(false)
-  const teclasPressionadas = useRef(new Set<string>())
+  const alvoRef = useRef<{ x: number; y: number } | null>(null)
   const ultimoSalvamento = useRef(0)
   const ultimoTempoRef = useRef<number | null>(null)
+  const [marcador, setMarcador] = useState<Marcador | null>(null)
 
   const restringir = useCallback((novoX: number, novoY: number) => {
     const { cx, cy, rx, ry, arvoreCx, arvoreCy } = limitesRef.current
@@ -160,25 +166,7 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   }, [medirLimites, ilhaRef])
 
   useEffect(() => {
-    if (!ativo) return undefined
-
-    function aoApertar(e: KeyboardEvent) {
-      const chave = e.key.toLowerCase()
-      if (!TECLAS_MOVIMENTO.has(chave)) return
-      e.preventDefault()
-      teclasPressionadas.current.add(chave)
-    }
-    function aoSoltar(e: KeyboardEvent) {
-      teclasPressionadas.current.delete(e.key.toLowerCase())
-    }
-
-    window.addEventListener('keydown', aoApertar)
-    window.addEventListener('keyup', aoSoltar)
-    return () => {
-      window.removeEventListener('keydown', aoApertar)
-      window.removeEventListener('keyup', aoSoltar)
-      teclasPressionadas.current.clear()
-    }
+    if (!ativo) alvoRef.current = null
   }, [ativo])
 
   // Calcula o delta a partir do timestamp bruto (1º parâmetro) em vez de
@@ -187,9 +175,8 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   // real entre frames foi bem maior, deixando o movimento muito mais lento
   // que VELOCIDADE_PX_POR_S sugere. Calculando na mão fica correto sempre.
   useAnimationFrame((tempoDesdeInicio) => {
-    if (!ativo) return
-    const teclas = teclasPressionadas.current
-    if (teclas.size === 0) {
+    const alvo = alvoRef.current
+    if (!ativo || !alvo) {
       ultimoTempoRef.current = tempoDesdeInicio
       return
     }
@@ -200,48 +187,73 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
     const deltaReal = Math.min(tempoDesdeInicio - anterior, 100)
     if (deltaReal <= 0) return
 
-    let dx = 0
-    let dy = 0
-    if (teclas.has('arrowup') || teclas.has('w')) dy -= 1
-    if (teclas.has('arrowdown') || teclas.has('s')) dy += 1
-    if (teclas.has('arrowleft') || teclas.has('a')) dx -= 1
-    if (teclas.has('arrowright') || teclas.has('d')) dx += 1
-    if (dx === 0 && dy === 0) return
-
-    const norma = Math.sqrt(dx * dx + dy * dy)
+    const dx = alvo.x - x.get()
+    const dy = alvo.y - y.get()
+    const dist = Math.sqrt(dx * dx + dy * dy)
     const passo = (VELOCIDADE_PX_POR_S * deltaReal) / 1000
-    const alvo = restringir(x.get() + (dx / norma) * passo, y.get() + (dy / norma) * passo)
-    x.set(alvo.x)
-    y.set(alvo.y)
+
+    if (dist <= Math.max(passo, DISTANCIA_CHEGADA)) {
+      x.set(alvo.x)
+      y.set(alvo.y)
+      alvoRef.current = null
+    } else {
+      const antesX = x.get()
+      const antesY = y.get()
+      const proximo = restringir(antesX + (dx / dist) * passo, antesY + (dy / dist) * passo)
+      // Se a árvore/borda travou o avanço (posição quase não mudou), para de
+      // tentar em vez de ficar "empurrando a parede" pra sempre — sem
+      // pathfinding de verdade, essa é a versão simples que ainda funciona
+      // bem numa demo (ver aviso sobre colisão complexa).
+      if (Math.hypot(proximo.x - antesX, proximo.y - antesY) < 0.05) {
+        alvoRef.current = null
+      } else {
+        x.set(proximo.x)
+        y.set(proximo.y)
+      }
+    }
     persistir()
   })
 
-  function aoArrastar(_: unknown, info: PanInfo) {
-    if (!ativo) return
-    const alvo = restringir(x.get() + info.delta.x, y.get() + info.delta.y)
-    x.set(alvo.x)
-    y.set(alvo.y)
-    persistir()
-  }
-
   useImperativeHandle(refExterno, () => ({
     resetarParaPadrao() {
+      alvoRef.current = null
       x.set(posicaoPadraoRef.current.x)
       y.set(posicaoPadraoRef.current.y)
+    },
+    moverPara(clienteX, clienteY) {
+      if (!ativo) return
+      const ilha = ilhaRef.current
+      if (!ilha) return
+      const rect = ilha.getBoundingClientRect()
+      const alvo = restringir(clienteX - rect.left, clienteY - rect.top)
+      alvoRef.current = alvo
+      setMarcador({ id: Date.now(), x: alvo.x, y: alvo.y })
     },
   }))
 
   return (
-    <motion.div
-      className="absolute z-[5] cursor-grab active:cursor-grabbing"
-      style={{ left: x, top: y, touchAction: 'none' }}
-      onPan={aoArrastar}
-      animate={animarPulo}
-      transition={transicaoPulo}
-    >
-      <div style={{ transform: 'translate(-50%, -82%)' }}>
-        <AvatarStage config={config} tamanho={tamanho} comMoldura={false} />
-      </div>
-    </motion.div>
+    <>
+      {marcador && (
+        <motion.div
+          key={marcador.id}
+          className="absolute z-[4] rounded-full border-2 border-white/80"
+          style={{ left: marcador.x, top: marcador.y, translateX: '-50%', translateY: '-50%' }}
+          initial={{ width: 6, height: 6, opacity: 0.9 }}
+          animate={{ width: 34, height: 34, opacity: 0 }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
+          onAnimationComplete={() => setMarcador((atual) => (atual?.id === marcador.id ? null : atual))}
+        />
+      )}
+      <motion.div
+        className="absolute z-[5]"
+        style={{ left: x, top: y }}
+        animate={animarPulo}
+        transition={transicaoPulo}
+      >
+        <div style={{ transform: 'translate(-50%, -82%)' }}>
+          <AvatarStage config={config} tamanho={tamanho} comMoldura={false} />
+        </div>
+      </motion.div>
+    </>
   )
 })

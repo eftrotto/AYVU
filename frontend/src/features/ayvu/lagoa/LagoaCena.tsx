@@ -246,7 +246,14 @@ export function LagoaCena() {
           />
         </div>
 
-        <div ref={ilhaRef} className="absolute z-[3]" style={{ left: '14%', top: '55%', width: '72%', height: '32%' }}>
+        <div
+          ref={ilhaRef}
+          className={`absolute z-[3] ${fase === 'ocioso' ? 'cursor-pointer' : ''}`}
+          style={{ left: '14%', top: '55%', width: '72%', height: '32%' }}
+          onClick={(e) => {
+            if (fase === 'ocioso') macuHandleRef.current?.moverPara(e.clientX, e.clientY)
+          }}
+        >
           <div
             className={`absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg ${
               ehNoite ? 'bg-gradient-to-b from-[#6b6248] to-[#4a4433]' : 'bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]'
@@ -388,7 +395,7 @@ export function LagoaCena() {
             transition={{ delay: 0.4 }}
             className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 text-center text-xs font-semibold text-white/80"
           >
-            Use ⬆️⬅️⬇️➡️ (ou WASD) — ou arraste — pra andar pela ilha
+            Clique (ou toque) na ilha pra caminhar até lá
           </motion.p>
         )}
       </motion.div>
