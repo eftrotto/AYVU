@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError, ayvuApi, macuApi, okaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
-import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
+import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
 
 type Fase = 'ocioso' | 'caindo' | 'ondulando' | 'pulando' | 'mergulhando' | 'saindo'
@@ -44,13 +44,17 @@ function calcularEhNoite(): boolean {
 
 export function LagoaCena() {
   const navigate = useNavigate()
-  const { sair } = useAuth()
+  const { usuario, sair } = useAuth()
   const avatarQuery = useQuery({ queryKey: ['macu', 'avatar'], queryFn: macuApi.obterAvatar })
   const config = { ...AVATAR_PADRAO, ...avatarQuery.data?.avatar_config }
 
   const [termo, setTermo] = useState('')
   const [fase, setFase] = useState<Fase>('ocioso')
   const inputRef = useRef<HTMLInputElement>(null)
+  const ilhaRef = useRef<HTMLDivElement>(null)
+  const gramaRef = useRef<HTMLDivElement>(null)
+  const arvoreRef = useRef<HTMLDivElement>(null)
+  const macuHandleRef = useRef<MacuNaIlhaHandle>(null)
   // Calculado 1x na entrada da cena — não precisa reagir a mudança de hora
   // no meio da sessão do aluno.
   const ehNoite = useMemo(calcularEhNoite, [])
@@ -87,6 +91,10 @@ export function LagoaCena() {
     const termoFinal = termo.trim()
     if (fase !== 'ocioso' || !termoFinal) return
     inputRef.current?.blur()
+    // Volta pro ponto de partida original antes do pulo/mergulho: a
+    // coreografia abaixo (ondulações, splash) é toda em coordenadas fixas
+    // da cena, não relativas a onde o Macu andou até aqui.
+    macuHandleRef.current?.resetarParaPadrao()
     setFase('caindo')
     // Best-effort: alimenta a visão do professor por aluno; não trava o fluxo se falhar.
     void ayvuApi.registrarPesquisa(termoFinal).catch(() => {})
@@ -238,13 +246,14 @@ export function LagoaCena() {
           />
         </div>
 
-        <div className="absolute z-[3]" style={{ left: '24%', top: '57%', width: '52%', height: '20%' }}>
+        <div ref={ilhaRef} className="absolute z-[3]" style={{ left: '14%', top: '55%', width: '72%', height: '32%' }}>
           <div
             className={`absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg ${
               ehNoite ? 'bg-gradient-to-b from-[#6b6248] to-[#4a4433]' : 'bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]'
             }`}
           />
           <div
+            ref={gramaRef}
             className={`absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] ${
               ehNoite ? 'bg-gradient-to-b from-[#2c4a2a] to-[#1e3620]' : 'bg-gradient-to-b from-[#5f9448] to-[#3f6c32]'
             }`}
@@ -266,12 +275,12 @@ export function LagoaCena() {
             style={{ left: '12%', bottom: '18%' }}
           />
 
-          <div className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 110, height: 150 }}>
+          <div ref={arvoreRef} className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 154, height: 210 }}>
             <div
-              className={`absolute bottom-0 left-[30%] w-3 origin-bottom rounded-full ${
+              className={`absolute bottom-0 left-[30%] origin-bottom rounded-full ${
                 ehNoite ? 'bg-[#3a2a1c]' : 'bg-[#7a5636]'
               }`}
-              style={{ height: '72%', transform: 'rotate(-10deg)' }}
+              style={{ width: 17, height: '72%', transform: 'rotate(-10deg)' }}
             />
             {[-65, -32, -2, 28, 58].map((angulo) => (
               <span
@@ -280,46 +289,49 @@ export function LagoaCena() {
                 style={{
                   left: '38%',
                   top: '26%',
-                  width: 52,
-                  height: 14,
+                  width: 73,
+                  height: 20,
                   transformOrigin: '0% 50%',
                   transform: `rotate(${angulo}deg)`,
                 }}
               />
             ))}
             <span
-              className={`absolute h-3 w-3 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
+              className={`absolute h-4 w-4 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
               style={{ left: '33%', top: '31%' }}
             />
             <span
-              className={`absolute h-3 w-3 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
+              className={`absolute h-4 w-4 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
               style={{ left: '41%', top: '34%' }}
             />
           </div>
-        </div>
 
-        {macuVisivel && (
-          <motion.div
-            className="absolute z-[5]"
-            style={{ right: '45%', top: '50%' }}
-            animate={
-              fase === 'pulando'
-                ? { y: [0, -46, -14], rotate: [0, -8, 6] }
-                : fase === 'mergulhando'
-                  ? { y: [-14, 30, 90], rotate: [6, 24, 45], scale: [1, 0.92, 0.55], opacity: [1, 1, 0] }
-                  : { y: 0 }
-            }
-            transition={
-              fase === 'pulando'
-                ? { duration: 0.48, ease: 'easeOut' }
-                : fase === 'mergulhando'
-                  ? { duration: 0.72, ease: 'easeIn' }
-                  : { duration: 0.3 }
-            }
-          >
-            <AvatarStage config={config} tamanho={132} comMoldura={false} />
-          </motion.div>
-        )}
+          {macuVisivel && (
+            <MacuNaIlha
+              ref={macuHandleRef}
+              config={config}
+              ilhaRef={ilhaRef}
+              gramaRef={gramaRef}
+              arvoreRef={arvoreRef}
+              ativo={fase === 'ocioso'}
+              userId={usuario?.id ?? null}
+              animarPulo={
+                fase === 'pulando'
+                  ? { y: [0, -46, -14], rotate: [0, -8, 6] }
+                  : fase === 'mergulhando'
+                    ? { y: [-14, 30, 90], rotate: [6, 24, 45], scale: [1, 0.92, 0.55], opacity: [1, 1, 0] }
+                    : { y: 0 }
+              }
+              transicaoPulo={
+                fase === 'pulando'
+                  ? { duration: 0.48, ease: 'easeOut' }
+                  : fase === 'mergulhando'
+                    ? { duration: 0.72, ease: 'easeIn' }
+                    : { duration: 0.3 }
+              }
+            />
+          )}
+        </div>
 
         {(fase === 'ondulando' || fase === 'pulando' || fase === 'mergulhando' || fase === 'saindo') && (
           <Ondulacao x="50%" y="82%" tamanho={190} />
@@ -368,6 +380,17 @@ export function LagoaCena() {
             />
           </motion.span>
         </motion.form>
+
+        {!emMovimento && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.85 }}
+            transition={{ delay: 0.4 }}
+            className="pointer-events-none absolute bottom-4 left-1/2 z-20 -translate-x-1/2 text-center text-xs font-semibold text-white/80"
+          >
+            Use ⬆️⬅️⬇️➡️ (ou WASD) — ou arraste — pra andar pela ilha
+          </motion.p>
+        )}
       </motion.div>
 
       {/* cobre a cena de azul até a próxima tela entrar */}
