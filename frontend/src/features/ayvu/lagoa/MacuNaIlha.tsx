@@ -2,6 +2,13 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { motion, useAnimationFrame, useMotionValue, type TargetAndTransition, type Transition } from 'framer-motion'
 import type { MacuAvatarConfig } from '../../../types/api'
 import { AvatarStage } from '../../macu/AvatarStage'
+import {
+  LPC_FRAME_ROW,
+  LPC_FRAME_ROW_CIMA,
+  LPC_FRAME_ROW_DIREITA,
+  LPC_FRAME_ROW_ESQUERDA,
+  LPC_QUADROS_CAMINHADA,
+} from '../../macu/lpcData'
 import { carregarPosicao, salvarPosicao } from './ilhaStorage'
 
 export interface MacuNaIlhaHandle {
@@ -25,6 +32,8 @@ const VELOCIDADE_PX_POR_S = 260
 const RAIO_MACU = 30
 const RAIO_EXCLUSAO_ARVORE = 60
 const DISTANCIA_CHEGADA = 1.5
+const FPS_CAMINHADA = 9
+const INTERVALO_QUADRO_MS = 1000 / FPS_CAMINHADA
 
 interface Limites {
   cx: number
@@ -61,6 +70,9 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   const ultimoSalvamento = useRef(0)
   const ultimoTempoRef = useRef<number | null>(null)
   const [marcador, setMarcador] = useState<Marcador | null>(null)
+  const [quadro, setQuadro] = useState({ linha: LPC_FRAME_ROW, coluna: 0 })
+  const quadroCaminhadaRef = useRef(0)
+  const ultimoQuadroTempoRef = useRef(0)
 
   const restringir = useCallback((novoX: number, novoY: number) => {
     const { cx, cy, rx, ry, arvoreCx, arvoreCy } = limitesRef.current
@@ -166,7 +178,10 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   }, [medirLimites, ilhaRef])
 
   useEffect(() => {
-    if (!ativo) alvoRef.current = null
+    if (!ativo) {
+      alvoRef.current = null
+      setQuadro((q) => (q.coluna === 0 ? q : { ...q, coluna: 0 }))
+    }
   }, [ativo])
 
   // Calcula o delta a partir do timestamp bruto (1º parâmetro) em vez de
@@ -196,6 +211,7 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
       x.set(alvo.x)
       y.set(alvo.y)
       alvoRef.current = null
+      setQuadro((q) => (q.coluna === 0 ? q : { ...q, coluna: 0 }))
     } else {
       const antesX = x.get()
       const antesY = y.get()
@@ -206,9 +222,29 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
       // bem numa demo (ver aviso sobre colisão complexa).
       if (Math.hypot(proximo.x - antesX, proximo.y - antesY) < 0.05) {
         alvoRef.current = null
+        setQuadro((q) => (q.coluna === 0 ? q : { ...q, coluna: 0 }))
       } else {
         x.set(proximo.x)
         y.set(proximo.y)
+
+        const linhaAtual =
+          Math.abs(dx) > Math.abs(dy)
+            ? dx > 0
+              ? LPC_FRAME_ROW_DIREITA
+              : LPC_FRAME_ROW_ESQUERDA
+            : dy > 0
+              ? LPC_FRAME_ROW
+              : LPC_FRAME_ROW_CIMA
+
+        if (tempoDesdeInicio - ultimoQuadroTempoRef.current >= INTERVALO_QUADRO_MS) {
+          ultimoQuadroTempoRef.current = tempoDesdeInicio
+          quadroCaminhadaRef.current = (quadroCaminhadaRef.current + 1) % LPC_QUADROS_CAMINHADA
+          setQuadro({ linha: linhaAtual, coluna: quadroCaminhadaRef.current })
+        } else if (quadro.linha !== linhaAtual) {
+          // Mudou de direção no meio do passo: atualiza a linha na hora,
+          // sem esperar o próximo quadro do ciclo de caminhada.
+          setQuadro((q) => ({ ...q, linha: linhaAtual }))
+        }
       }
     }
     persistir()
@@ -219,6 +255,7 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
       alvoRef.current = null
       x.set(posicaoPadraoRef.current.x)
       y.set(posicaoPadraoRef.current.y)
+      setQuadro({ linha: LPC_FRAME_ROW, coluna: 0 })
     },
     moverPara(clienteX, clienteY) {
       if (!ativo) return
@@ -251,7 +288,13 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
         transition={transicaoPulo}
       >
         <div style={{ transform: 'translate(-50%, -82%)' }}>
-          <AvatarStage config={config} tamanho={tamanho} comMoldura={false} />
+          <AvatarStage
+            config={config}
+            tamanho={tamanho}
+            comMoldura={false}
+            linha={quadro.linha}
+            coluna={quadro.coluna}
+          />
         </div>
       </motion.div>
     </>

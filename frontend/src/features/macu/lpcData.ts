@@ -9,6 +9,16 @@ export const LPC_FRAME_ROW = 10 // "parado, de frente" — mesmo quadro que o ge
 export const LPC_FRAME_COL = 0
 export const LPC_SHEET_COLS = 13 // 832px / 64px
 
+// Linhas de caminhada da spritesheet LPC (confirmado visualmente recortando
+// as 4 linhas): 8 = de costas (cima), 9 = perfil esquerdo, 10 = de frente
+// (baixo, mesma do LPC_FRAME_ROW), 11 = perfil direito. Cada uma tem 9
+// quadros (colunas 0-8) formando o ciclo de caminhada — coluna 0 dobra como
+// "parado olhando pra essa direção".
+export const LPC_FRAME_ROW_CIMA = 8
+export const LPC_FRAME_ROW_ESQUERDA = 9
+export const LPC_FRAME_ROW_DIREITA = 11
+export const LPC_QUADROS_CAMINHADA = 9
+
 export const GENEROS = [
   { valor: 'male', rotulo: 'Masculino', simbolo: '♂' },
   { valor: 'female', rotulo: 'Feminino', simbolo: '♀' },
