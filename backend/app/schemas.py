@@ -111,6 +111,13 @@ class MacuAvatarOut(BaseModel):
     atualizado_em: datetime
 
 
+class NivelOut(BaseModel):
+    nivel: int
+    xp_total: int
+    xp_neste_nivel: int
+    xp_para_proximo_nivel: int
+
+
 # ---------------------------------------------------------------------------
 # Ayvu
 # ---------------------------------------------------------------------------

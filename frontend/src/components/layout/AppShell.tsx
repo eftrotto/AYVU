@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthContext'
+import { NivelBar } from '../../features/macu/NivelBar'
 
 interface AppShellProps {
   children: ReactNode
@@ -23,6 +24,7 @@ export function AppShell({ children, largura = 'lg', voltar }: AppShellProps) {
         <header className="mb-6 flex items-start justify-between gap-4">
           <div>
             <img src="/assets/logo.png" alt="AYVU" className="mb-2 h-8 w-auto" />
+            {usuario?.tipo === 'aluno' && <NivelBar className="mb-2" />}
             {voltar && (
               <button
                 type="button"

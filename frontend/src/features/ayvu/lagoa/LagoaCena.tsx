@@ -5,6 +5,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError, ayvuApi, macuApi, okaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
+import { NivelBar } from '../../macu/NivelBar'
 import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
 
@@ -189,11 +190,10 @@ export function LagoaCena() {
         transition={{ duration: 0.75, ease: 'easeIn' }}
       >
         {!emMovimento && (
-          <img
-            src="/assets/logo.png"
-            alt="AYVU"
-            className="absolute left-4 top-4 z-40 h-7 w-auto opacity-90 drop-shadow-sm"
-          />
+          <div className="absolute left-4 top-4 z-40">
+            <img src="/assets/logo.png" alt="AYVU" className="h-7 w-auto opacity-90 drop-shadow-sm" />
+            <NivelBar variante="escuro" className="mt-2" />
+          </div>
         )}
 
         <div

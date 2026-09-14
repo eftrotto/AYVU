@@ -84,6 +84,13 @@ export interface MacuAvatar {
   atualizado_em: string
 }
 
+export interface Nivel {
+  nivel: number
+  xp_total: number
+  xp_neste_nivel: number
+  xp_para_proximo_nivel: number
+}
+
 // ---------------------------------------------------------------------------
 // Ayvu
 // ---------------------------------------------------------------------------

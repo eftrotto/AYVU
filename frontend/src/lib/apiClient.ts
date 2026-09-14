@@ -9,6 +9,7 @@ import {
   type CadastroPayload,
   type EntrarOkaResponse,
   type MensagemChat,
+  type Nivel,
   type Nota,
   type NotaPayload,
   type Oka,
@@ -75,10 +76,13 @@ async function requisitar<T>(caminho: string, opcoes: OpcoesRequisicao = {}): Pr
 
   let resposta: Response
   try {
+    // no-store: são respostas de API, não recurso estático — cache de HTTP
+    // do navegador aqui só causa dado desatualizado sem aviso nenhum.
     resposta = await fetch(`${API_BASE_URL}${caminho}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      cache: 'no-store',
     })
   } catch {
     throw new ApiError('Não foi possível falar com o servidor. Verifique sua conexão.', 0)
@@ -115,6 +119,8 @@ export const macuApi = {
 
   salvarAvatar: (avatar_config: MacuAvatar['avatar_config']) =>
     requisitar<MacuAvatar>('/macu/avatar', { method: 'PUT', body: { avatar_config } }),
+
+  obterNivel: () => requisitar<Nivel>('/macu/nivel'),
 }
 
 // ---------------------------------------------------------------------------
