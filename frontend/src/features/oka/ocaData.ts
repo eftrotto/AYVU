@@ -27,3 +27,14 @@ export const ITENS_CENTRAIS = [
 ] as const
 
 export type ItemCentral = (typeof ITENS_CENTRAIS)[number]['valor']
+
+/** Escurece um hex (sem #) em `quantidade` (0-1) — usado pra sombrear as
+ * superfícies da Oca (parede/telhado) sem precisar de uma 2ª cor por opção. */
+export function sombrear(hex: string, quantidade: number): string {
+  const n = parseInt(hex, 16)
+  const canal = (deslocamento: number) => {
+    const valor = Math.round(((n >> deslocamento) & 255) * (1 - quantidade))
+    return Math.max(0, Math.min(255, valor)).toString(16).padStart(2, '0')
+  }
+  return `${canal(16)}${canal(8)}${canal(0)}`
+}
