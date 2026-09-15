@@ -115,7 +115,7 @@ O Vite já vem configurado com proxy para `http://127.0.0.1:8000`, então o fron
 ## Time
 
 - Enzo Trotto - Desenvolvedor e neurocientista em formação.
-- Gabriel Fassini - Psicólogo com interesse em IA.
+- Gabriel Fassini - Psicólogo em formação com interesse em IA e neurociências.
 
 ---
 
