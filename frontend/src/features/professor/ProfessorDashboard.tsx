@@ -161,9 +161,7 @@ export function ProfessorDashboard() {
                 {alunosQuery.isLoading && <Spinner rotulo="Carregando alunos..." />}
 
                 {alunosQuery.data && alunosQuery.data.length === 0 && (
-                  <p className="text-sm text-text-soft">
-                    Ninguém entrou ainda — compartilhe o código {okaSelecionada.codigo} com a ilha.
-                  </p>
+                  <p className="text-sm text-text-soft">Ninguém entrou ainda!</p>
                 )}
 
                 <div className="flex flex-col gap-3">
@@ -234,9 +232,8 @@ export function ProfessorDashboard() {
 
                 {aggregateQuery.data && !aggregateQuery.data.dados_suficientes && (
                   <p className="text-sm text-text-soft">
-                    Essa ilha tem {aggregateQuery.data.total_checkins} check-in(s) — abaixo do mínimo de{' '}
-                    {aggregateQuery.data.minimo_necessario} pra mostrar uma média (protege a identidade de
-                    quem respondeu).
+                    Essa ilha tem {aggregateQuery.data.total_checkins} check-in(s), tenha pelo menos{' '}
+                    {aggregateQuery.data.minimo_necessario} pra mostrar uma média.
                   </p>
                 )}
 
