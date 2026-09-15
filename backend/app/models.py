@@ -88,6 +88,28 @@ class MacuAvatar(Base):
     )
 
 
+class OkaPessoal(Base):
+    """
+    A Oka pessoal do aluno — espaço privado pra decorar (referência à oca
+    indígena, grafada com K como o resto do projeto — sem relação com a
+    Oka/ilha do professor em routers/okas.py além do nome). Prototipo:
+    só decoração de ambiente (cor de parede, chão, item central), sem
+    sistema de itens desbloqueáveis ainda.
+    """
+
+    __tablename__ = "okas_pessoais"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), unique=True, index=True)
+    cor_parede: Mapped[str] = mapped_column(String(20), default="c2a35f")
+    cor_chao: Mapped[str] = mapped_column(String(20), default="7a5636")
+    item_central: Mapped[str] = mapped_column(String(30), default="nenhum")
+
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
 # ---------------------------------------------------------------------------
 # Ayvu — núcleo de exploração livre de temas
 # ---------------------------------------------------------------------------

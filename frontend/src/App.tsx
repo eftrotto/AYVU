@@ -9,6 +9,7 @@ import { LagoaCena } from './features/ayvu/lagoa/LagoaCena'
 import { ComoEstudarPage } from './features/ayvu/lagoa/ComoEstudarPage'
 import { TemaExploracaoPage } from './features/ayvu/lagoa/TemaExploracaoPage'
 import { OkaPage } from './features/oka/OkaPage'
+import { ChatIlhaPage } from './features/oka/ChatIlhaPage'
 import { MeuBoletimPage } from './features/boletim/MeuBoletimPage'
 
 export default function App() {
@@ -70,6 +71,14 @@ export default function App() {
         element={
           <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
             <OkaPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/aluno/chat"
+        element={
+          <ProtectedRoute tipoEsperado="aluno" exigirRekoHoje>
+            <ChatIlhaPage />
           </ProtectedRoute>
         }
       />

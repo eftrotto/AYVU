@@ -21,7 +21,7 @@ def _oka_do_professor_ou_404(db: Session, aluno_id: int, professor_id: int) -> m
 
     oka = db.get(models.Oka, aluno.oka_id)
     if oka is None or oka.professor_id != professor_id:
-        raise HTTPException(status_code=403, detail="Esse aluno não é da sua Oka.")
+        raise HTTPException(status_code=403, detail="Esse aluno não é da sua ilha.")
 
     return aluno
 

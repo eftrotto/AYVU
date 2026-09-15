@@ -67,7 +67,7 @@ export function LagoaCena() {
     onSuccess: (dados) => {
       setCodigoOka('')
       setMostrarEntrarOka(false)
-      window.alert(`Você entrou na Oka "${dados.nome_oka}"!`)
+      window.alert(`Você entrou na ilha "${dados.nome_oka}"!`)
     },
   })
 
@@ -124,7 +124,14 @@ export function LagoaCena() {
               onClick={() => navigate('/aluno/oka')}
               className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
             >
-              👥 Oka
+              🛖 Oka
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/aluno/chat')}
+              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+            >
+              💬 Chat
             </button>
             <button
               type="button"
@@ -138,7 +145,7 @@ export function LagoaCena() {
               onClick={() => setMostrarEntrarOka((atual) => !atual)}
               className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
             >
-              🏝️ Entrar numa Oka
+              🏝️ Entrar numa ilha
             </button>
             <button
               type="button"
@@ -157,7 +164,7 @@ export function LagoaCena() {
               }}
               className="flex flex-col gap-2 rounded-2xl border border-white/30 bg-white/95 p-3 shadow-xl"
             >
-              <label className="text-xs font-bold text-[#2d2620]">Código da Oka</label>
+              <label className="text-xs font-bold text-[#2d2620]">Código da ilha</label>
               <input
                 autoFocus
                 value={codigoOka}

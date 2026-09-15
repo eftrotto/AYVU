@@ -1,4 +1,3 @@
-import json
 import random
 import string
 
@@ -73,34 +72,6 @@ def entrar_na_oka(
     return schemas.EntrarOkaOut(oka_id=oka.id, nome_oka=oka.nome)
 
 
-@router.get("/minha/colegas", response_model=list[schemas.ColegaDaOkaOut])
-def listar_colegas(
-    db: Session = Depends(get_db),
-    aluno: models.Usuario = Depends(exigir_aluno),
-):
-    """De propósito só nome + Macu, sem temas pesquisados nem sinal de
-    bem-estar (isso é só pro professor, ver listar_alunos_da_oka)."""
-    if aluno.oka_id is None:
-        return []
-
-    colegas = db.execute(
-        select(models.Usuario).where(
-            models.Usuario.oka_id == aluno.oka_id,
-            models.Usuario.id != aluno.id,
-        )
-    ).scalars().all()
-
-    resultado = []
-    for colega in colegas:
-        avatar = db.execute(
-            select(models.MacuAvatar).where(models.MacuAvatar.user_id == colega.id)
-        ).scalar_one_or_none()
-        config = json.loads(avatar.avatar_config) if avatar else {}
-        resultado.append(schemas.ColegaDaOkaOut(id=colega.id, nome=colega.nome, avatar_config=config))
-
-    return resultado
-
-
 _QUANTIDADE_MENSAGENS_CHAT = 200
 
 
@@ -152,7 +123,7 @@ def enviar_mensagem_chat(
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
     if aluno.oka_id is None:
-        raise HTTPException(status_code=400, detail="Você precisa estar numa Oka pra usar o chat.")
+        raise HTTPException(status_code=400, detail="Você precisa estar numa ilha pra usar o chat.")
 
     mensagem = models.MensagemChat(oka_id=aluno.oka_id, autor_id=aluno.id, texto=dados.texto.strip())
     db.add(mensagem)
@@ -210,7 +181,7 @@ def listar_alunos_da_oka(
     """
     oka = db.get(models.Oka, oka_id)
     if oka is None or oka.professor_id != professor.id:
-        raise HTTPException(status_code=404, detail="Oka não encontrada.")
+        raise HTTPException(status_code=404, detail="Ilha não encontrada.")
 
     alunos = db.execute(select(models.Usuario).where(models.Usuario.oka_id == oka_id)).scalars().all()
 
@@ -263,7 +234,7 @@ def listar_chat_da_oka_professor(
     (ver enviar_mensagem_chat, restrito a alunos)."""
     oka = db.get(models.Oka, oka_id)
     if oka is None or oka.professor_id != professor.id:
-        raise HTTPException(status_code=404, detail="Oka não encontrada.")
+        raise HTTPException(status_code=404, detail="Ilha não encontrada.")
 
     mensagens = (
         db.execute(

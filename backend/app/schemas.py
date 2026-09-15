@@ -118,6 +118,21 @@ class NivelOut(BaseModel):
     xp_para_proximo_nivel: int
 
 
+class OkaPessoalUpsert(BaseModel):
+    cor_parede: str = Field(min_length=1, max_length=20)
+    cor_chao: str = Field(min_length=1, max_length=20)
+    item_central: str = Field(min_length=1, max_length=30)
+
+
+class OkaPessoalOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    cor_parede: str
+    cor_chao: str
+    item_central: str
+    atualizado_em: datetime
+
+
 # ---------------------------------------------------------------------------
 # Ayvu
 # ---------------------------------------------------------------------------
@@ -232,15 +247,6 @@ class AlunoDaOkaOut(BaseModel):
     sinal_bem_estar: str
     frase_bem_estar: str
     temas_pesquisados: list[str]
-
-
-class ColegaDaOkaOut(BaseModel):
-    # Visão do aluno dos colegas da própria Oka. De propósito NÃO tem
-    # temas_pesquisados nem sinal_bem_estar aqui: entre alunos, só nome +
-    # Macu, nada do que só o professor pode ver.
-    id: int
-    nome: str
-    avatar_config: dict[str, Any]
 
 
 class MensagemChatCreate(BaseModel):

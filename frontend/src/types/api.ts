@@ -91,6 +91,15 @@ export interface Nivel {
   xp_para_proximo_nivel: number
 }
 
+// Oca pessoal do aluno (decoração do "seu espaço" — sem relação com a
+// Oka/ilha do professor abaixo, além do nome).
+export interface OkaPessoal {
+  cor_parede: string
+  cor_chao: string
+  item_central: string
+  atualizado_em: string
+}
+
 // ---------------------------------------------------------------------------
 // Ayvu
 // ---------------------------------------------------------------------------
@@ -188,14 +197,6 @@ export interface AlunoDaOka {
   sinal_bem_estar: SinalBemEstar
   frase_bem_estar: string
   temas_pesquisados: string[]
-}
-
-// Colegas de Oka do próprio aluno (sem sinal_bem_estar/temas: isso é só pro
-// professor, ver AlunoDaOka).
-export interface ColegaDaOka {
-  id: number
-  nome: string
-  avatar_config: Partial<MacuAvatarConfig>
 }
 
 export interface MensagemChat {

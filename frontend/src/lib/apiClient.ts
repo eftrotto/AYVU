@@ -2,7 +2,6 @@
  * (o backend sempre responde erro como {"detail": ...}). */
 import {
   type AlunoDaOka,
-  type ColegaDaOka,
   type LoginPayload,
   type LoginResponse,
   type MacuAvatar,
@@ -13,6 +12,7 @@ import {
   type Nota,
   type NotaPayload,
   type Oka,
+  type OkaPessoal,
   type Progresso,
   type ProgressoAluno,
   type RekoAggregate,
@@ -171,10 +171,20 @@ export const okaApi = {
     requisitar<EntrarOkaResponse>('/okas/entrar', { method: 'POST', body: { codigo } }),
 
   listarAlunos: (okaId: number) => requisitar<AlunoDaOka[]>(`/okas/${okaId}/alunos`),
+}
 
-  // Colegas da própria Oka (sem sinal de bem-estar nem temas: isso é só
-  // pro professor, ver listarAlunos acima).
-  listarColegas: () => requisitar<ColegaDaOka[]>('/okas/minha/colegas'),
+// ---------------------------------------------------------------------------
+// Oca pessoal — o espaço privado do aluno pra decorar
+// ---------------------------------------------------------------------------
+
+export const ocaPessoalApi = {
+  obter: () => requisitar<OkaPessoal>('/oca'),
+
+  salvar: (dados: OkaPessoal) =>
+    requisitar<OkaPessoal>('/oca', {
+      method: 'PUT',
+      body: { cor_parede: dados.cor_parede, cor_chao: dados.cor_chao, item_central: dados.item_central },
+    }),
 }
 
 // ---------------------------------------------------------------------------

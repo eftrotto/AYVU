@@ -80,14 +80,14 @@ export function ProfessorDashboard() {
     <AppShell largura="lg">
       <h1 className="mb-1 text-2xl font-bold text-text">Bem-vindo, {usuario?.nome.split(' ')[0]}!</h1>
       <p className="mb-6 text-sm text-text-soft">
-        Cada Oka é uma ilha — crie uma, compartilhe o código com os alunos, e acompanhe como eles estão.
+        Crie uma ilha, compartilhe o código com os alunos, e acompanhe como eles estão.
       </p>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_1fr]">
-        {/* Coluna das okas */}
+        {/* Coluna das ilhas */}
         <div className="flex flex-col gap-4">
           <Card className="p-5">
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">Criar Oka</h2>
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">Criar ilha</h2>
             <form
               className="flex flex-col gap-2.5"
               onSubmit={(e) => {
@@ -103,15 +103,15 @@ export function ProfessorDashboard() {
                 className="rounded-xl border border-border bg-[#fffaf3] px-3.5 py-2.5 text-sm outline-none focus:border-accent"
               />
               <Button type="submit" disabled={criarOka.isPending || !nomeNovaOka.trim()}>
-                {criarOka.isPending ? 'Criando...' : '🏝️ Criar Oka'}
+                {criarOka.isPending ? 'Criando...' : '🏝️ Criar ilha'}
               </Button>
             </form>
           </Card>
 
-          {okasQuery.isLoading && <Spinner rotulo="Carregando Okas..." />}
+          {okasQuery.isLoading && <Spinner rotulo="Carregando ilhas..." />}
 
           {okasQuery.data && okasQuery.data.length === 0 && (
-            <p className="px-1 text-sm text-text-soft">Você ainda não criou nenhuma Oka.</p>
+            <p className="px-1 text-sm text-text-soft">Você ainda não criou nenhuma ilha.</p>
           )}
 
           <div className="flex flex-col gap-2">
@@ -133,11 +133,11 @@ export function ProfessorDashboard() {
           </div>
         </div>
 
-        {/* Coluna de detalhe da Oka selecionada */}
+        {/* Coluna de detalhe da ilha selecionada */}
         <div className="flex flex-col gap-5">
           {!okaSelecionada && !okasQuery.isLoading && (
             <Card className="p-6">
-              <p className="text-sm text-text-soft">Crie ou escolha uma Oka pra ver os alunos.</p>
+              <p className="text-sm text-text-soft">Crie ou escolha uma ilha pra ver os alunos.</p>
             </Card>
           )}
 
@@ -162,7 +162,7 @@ export function ProfessorDashboard() {
 
                 {alunosQuery.data && alunosQuery.data.length === 0 && (
                   <p className="text-sm text-text-soft">
-                    Ninguém entrou ainda — compartilhe o código {okaSelecionada.codigo} com a Oka.
+                    Ninguém entrou ainda — compartilhe o código {okaSelecionada.codigo} com a ilha.
                   </p>
                 )}
 
@@ -214,7 +214,7 @@ export function ProfessorDashboard() {
               </Card>
 
               <Card className="p-5">
-                <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">Reko da Oka</h2>
+                <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">Reko da ilha</h2>
                 <p className="mb-4 text-xs text-text-soft">
                   Sempre agregado — nunca a nota de um aluno específico.
                 </p>
@@ -234,7 +234,7 @@ export function ProfessorDashboard() {
 
                 {aggregateQuery.data && !aggregateQuery.data.dados_suficientes && (
                   <p className="text-sm text-text-soft">
-                    Essa Oka tem {aggregateQuery.data.total_checkins} check-in(s) — abaixo do mínimo de{' '}
+                    Essa ilha tem {aggregateQuery.data.total_checkins} check-in(s) — abaixo do mínimo de{' '}
                     {aggregateQuery.data.minimo_necessario} pra mostrar uma média (protege a identidade de
                     quem respondeu).
                   </p>
@@ -243,7 +243,7 @@ export function ProfessorDashboard() {
                 {aggregateQuery.data?.dados_suficientes && aggregateQuery.data.medias && (
                   <div className="flex flex-col gap-3">
                     <p className="text-xs font-bold text-text-soft">
-                      {aggregateQuery.data.total_checkins} check-ins nesta Oka
+                      {aggregateQuery.data.total_checkins} check-ins nesta ilha
                     </p>
                     {(Object.keys(ROTULOS_COMPETENCIA) as (keyof RekoMedias)[]).map((chave) => {
                       const media = aggregateQuery.data!.medias![chave]
@@ -290,13 +290,13 @@ function ChatDaOkaProfessor({ okaId }: { okaId: number }) {
 
   return (
     <Card className="p-5">
-      <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">💬 Chat da Oka</h2>
+      <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">💬 Chat da ilha</h2>
       <p className="mb-3 text-xs text-text-soft">Só leitura, pra acompanhar a conversa dos alunos.</p>
 
       {chatQuery.isLoading && <Spinner rotulo="Carregando chat..." />}
 
       {chatQuery.data && chatQuery.data.length === 0 && (
-        <p className="text-sm text-text-soft">Ninguém mandou mensagem ainda nessa Oka.</p>
+        <p className="text-sm text-text-soft">Ninguém mandou mensagem ainda nessa ilha.</p>
       )}
 
       {chatQuery.data && chatQuery.data.length > 0 && (

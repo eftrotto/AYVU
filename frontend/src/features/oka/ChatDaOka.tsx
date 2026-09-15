@@ -40,7 +40,7 @@ export function ChatDaOka() {
 
   return (
     <Card className="flex flex-col p-5">
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">💬 Chat da Oka</h2>
+      <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">💬 Chat da ilha</h2>
 
       <div className="mb-3 flex h-72 flex-col gap-2 overflow-y-auto rounded-xl border border-border bg-[#fffaf3] p-3">
         {mensagensQuery.isLoading && <Spinner rotulo="Carregando chat..." />}
@@ -82,7 +82,7 @@ export function ChatDaOka() {
           type="text"
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
-          placeholder="Escreva algo pra Oka..."
+          placeholder="Escreva algo pra ilha..."
           maxLength={1000}
           className="min-w-0 flex-1 rounded-xl border border-border bg-[#fffaf3] px-3.5 py-2.5 text-sm outline-none focus:border-accent"
         />
