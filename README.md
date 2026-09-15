@@ -62,3 +62,80 @@ Para a escola, o valor está no cruzamento inédito entre camadas de dado que no
 - Framer Motion (animações)
 
 ## Estrutura do repositório
+
+```
+AYVU/
+├── backend/
+│   └── app/
+│       ├── main.py        # app FastAPI, CORS, erros
+│       ├── database.py    # engine/sessão (Postgres/Supabase, fallback SQLite)
+│       ├── models.py      # Usuario, Oka, RekoCheckin, Nota, Tema, Conteudo...
+│       ├── schemas.py     # schemas Pydantic
+│       ├── security.py    # hash de senha (PBKDF2) e JWT
+│       ├── deps.py        # dependências de auth/rota
+│       ├── seed.py        # dados iniciais
+│       └── routers/
+│           ├── auth.py    # cadastro e login
+│           ├── macu.py    # avatar do aluno
+│           ├── reko.py    # check-in e agregado por Oka
+│           ├── ayvu.py    # temas, conteúdos, progresso
+│           ├── okas.py    # criar/entrar/listar Oka
+│           └── notas.py   # boletim
+├── frontend/
+│   └── src/
+│       ├── features/
+│       │   ├── auth/
+│       │   ├── macu/
+│       │   ├── reko/
+│       │   ├── ayvu/lagoa/
+│       │   ├── oka/
+│       │   ├── boletim/
+│       │   ├── professor/
+│       │   └── dashboard/
+│       ├── components/
+│       ├── lib/            # apiClient.ts, authStorage
+│       └── types/
+└── README.md
+```
+
+## Como rodar localmente
+
+### Backend
+
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate  # (Windows) ou source venv/bin/activate no Linux/Mac
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
+```
+
+Sem um `DATABASE_URL` configurado (Postgres/Supabase), o backend cai automaticamente para SQLite local, não precisa de nenhum setup extra pra rodar.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O Vite já vem configurado com proxy para `http://127.0.0.1:8000`, então o frontend em `localhost:5173` fala com o backend sem configuração extra de CORS/URL.
+
+## Roadmap
+
+- [x] Macu — avatar personalizável (sprites LPC)
+- [x] Reko — check-in diário CASEL, com agregação por Oka
+- [x] Ayvu — ilha explorável, com movimentação livre do Macu
+- [ ] Oka — casa personalizável e visitável de cada aluno
+- [ ] Ilhas de professor — link de convite com desafios de conhecimento
+- [ ] Sistema de pontos — ganhos ao completar desafios, usados para comprar itens de personalização do Macu e da Oka
+
+## Time
+
+- Enzo Trotto - Desenvolvedor e neurocientista em formação.
+- Gabriel Fassini - Psicólogo em formação com interesse em IA e neurociências.
+
+---
+
+*Projeto desenvolvido durante o Hacktudo.*
