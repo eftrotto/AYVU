@@ -16,7 +16,7 @@ O AYVU parte de uma pergunta diferente: em vez de disputar com essa tecnologia, 
 
 **AYVU** significa "voz da alma" na tradição guarani, para eles, a palavra tem uma dimensão sagrada de manifestação do ser. A plataforma propõe justamente isso ao aluno: um espaço para despertar e expressar sua própria voz interior.
 
-O **Ayvu é a própria ilha**  o espaço central e explorável da plataforma, que dá nome ao projeto inteiro. É dentro dela que vivem os outros pilares:
+O **Ayvu é a própria ilha** — o espaço central e explorável da plataforma, que dá nome ao projeto inteiro. É dentro dela que vivem os outros pilares:
 
 ### Macu - como você se expressa
 Um avatar personalizável que representa a identidade do aluno dentro da plataforma, com sprites em pixel art no estilo LPC (cabelo, pele, roupas, acessórios combináveis). O aluno controla o Macu livremente pela ilha.
@@ -62,72 +62,3 @@ Para a escola, o valor está no cruzamento inédito entre camadas de dado que no
 - Framer Motion (animações)
 
 ## Estrutura do repositório
-## Estrutura do repositório
-
-```
-AYVU/
-├── backend/
-│   └── app/
-│       ├── main.py           # app FastAPI, CORS, tratamento de erro
-│       ├── database.py       # engine/sessão (Postgres via Supabase, fallback SQLite)
-│       ├── models.py         # Usuario, Oka, RekoCheckin, Nota, Tema, Conteudo, Progresso...
-│       ├── schemas.py        # schemas Pydantic (request/response)
-│       ├── security.py       # hash de senha (PBKDF2) e JWT
-│       ├── deps.py           # dependências de autenticação/rota
-│       ├── seed.py           # dados iniciais (temas, conteúdos)
-│       └── routers/
-│           ├── auth.py       # cadastro e login
-│           ├── macu.py       # avatar do aluno
-│           ├── reko.py       # check-in e agregado por Oka
-│           ├── ayvu.py       # temas, conteúdos, progresso, busca de vídeo
-│           ├── okas.py       # criar/entrar/listar Oka, colegas, alunos
-│           └── notas.py      # boletim
-├── frontend/
-│   └── src/
-│       ├── features/
-│       │   ├── auth/         # login e cadastro
-│       │   ├── macu/         # personalização do avatar
-│       │   ├── reko/         # check-in diário
-│       │   ├── ayvu/lagoa/   # cena de exploração livre
-│       │   ├── oka/          # colegas da mesma Oka
-│       │   ├── boletim/      # notas do aluno
-│       │   ├── professor/    # painel do professor (Okas + boletim)
-│       │   └── dashboard/    # tela inicial do aluno
-│       ├── components/       # UI e layout compartilhados
-│       ├── lib/               # apiClient.ts (client HTTP único) e authStorage
-│       └── types/             # tipos espelhando os schemas do backend
-└── README.md
-```
-
-## Como rodar localmente
-
-### Backend
-
-```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate  # (Windows) ou source venv/bin/activate no Linux/Mac
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
-```
-
-Sem um `DATABASE_URL` configurado (Postgres/Supabase), o backend cai automaticamente para SQLite local, não precisa de nenhum setup extra pra rodar.
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-O Vite já vem configurado com proxy para `http://127.0.0.1:8000`, então o frontend em `localhost:5173` fala com o backend sem configuração extra de CORS/URL.
-
-## Time
-
-- Enzo Trotto - Desenvolvedor e neurocientista em formação.
-- Gabriel Fassini - Psicólogo em formação com interesse em IA e neurociências.
-
----
-
-*Projeto desenvolvido durante o Hacktudo.*
