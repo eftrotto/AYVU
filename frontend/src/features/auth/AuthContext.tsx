@@ -10,6 +10,11 @@ interface AuthContextValue {
   fazerLogin: (email: string, senha: string) => Promise<Usuario>
   cadastrar: (dados: CadastroPayload) => Promise<Usuario>
   sair: () => void
+  // Atualiza o usuário em memória + localStorage sem precisar de um novo
+  // login — usado depois de ações que mudam o próprio usuário no backend
+  // mas não passam pelo fluxo de login (ex: entrar numa ilha muda o
+  // oka_id; ver LagoaCena.tsx).
+  atualizarUsuario: (usuario: Usuario) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -41,9 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsuario(null)
   }, [])
 
+  const atualizarUsuario = useCallback((novoUsuario: Usuario) => {
+    const token = obterToken()
+    if (!token) return
+    salvarSessao(token, novoUsuario)
+    setUsuario(novoUsuario)
+  }, [])
+
   const valor = useMemo<AuthContextValue>(
-    () => ({ usuario, estaLogado: usuario !== null, fazerLogin, cadastrar, sair }),
-    [usuario, fazerLogin, cadastrar, sair],
+    () => ({ usuario, estaLogado: usuario !== null, fazerLogin, cadastrar, sair, atualizarUsuario }),
+    [usuario, fazerLogin, cadastrar, sair, atualizarUsuario],
   )
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>

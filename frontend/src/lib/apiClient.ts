@@ -168,6 +168,10 @@ export const okaApi = {
 
   listarMinhas: () => requisitar<Oka[]>('/okas'),
 
+  // Do aluno: a ilha que ele já entrou (null se nenhuma) — pra mostrar o
+  // código de volta (ver LagoaCena.tsx).
+  obterMinha: () => requisitar<Oka | null>('/okas/minha'),
+
   entrar: (codigo: string) =>
     requisitar<EntrarOkaResponse>('/okas/entrar', { method: 'POST', body: { codigo } }),
 

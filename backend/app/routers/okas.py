@@ -58,6 +58,20 @@ def listar_minhas_okas(
     )
 
 
+@router.get("/minha", response_model=schemas.OkaOut | None)
+def obter_minha_oka(
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    """A ilha que o aluno já entrou (pelo código) — null se ainda não entrou
+    em nenhuma. Usado pra mostrar o código de volta pro aluno (ver
+    LagoaCena.tsx), já que depois de entrar ele não fica visível em
+    nenhum outro lugar."""
+    if aluno.oka_id is None:
+        return None
+    return db.get(models.Oka, aluno.oka_id)
+
+
 @router.post("/entrar", response_model=schemas.EntrarOkaOut)
 def entrar_na_oka(
     dados: schemas.EntrarOkaPayload,

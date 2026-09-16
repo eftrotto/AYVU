@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError, ayvuApi, macuApi, okaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
@@ -46,9 +46,18 @@ function calcularEhNoite(): boolean {
 
 export function LagoaCena() {
   const navigate = useNavigate()
-  const { usuario, sair } = useAuth()
+  const { usuario, sair, atualizarUsuario } = useAuth()
+  const queryClient = useQueryClient()
   const avatarQuery = useQuery({ queryKey: ['macu', 'avatar'], queryFn: macuApi.obterAvatar })
   const config = { ...AVATAR_PADRAO, ...avatarQuery.data?.avatar_config }
+
+  // A ilha que o aluno já entrou (null se nenhuma) — só pra mostrar o
+  // código de volta pra ele no botão que antes dizia "Entrar numa ilha".
+  const minhaOkaQuery = useQuery({
+    queryKey: ['okas', 'minha'],
+    queryFn: okaApi.obterMinha,
+    enabled: usuario?.oka_id != null,
+  })
 
   const [termo, setTermo] = useState('')
   const [fase, setFase] = useState<Fase>('ocioso')
@@ -68,6 +77,8 @@ export function LagoaCena() {
     onSuccess: (dados) => {
       setCodigoOka('')
       setMostrarEntrarOka(false)
+      if (usuario) atualizarUsuario({ ...usuario, oka_id: dados.oka_id })
+      void queryClient.invalidateQueries({ queryKey: ['okas', 'minha'] })
       window.alert(`Você entrou na ilha "${dados.nome_oka}"!`)
     },
   })
@@ -141,13 +152,25 @@ export function LagoaCena() {
             >
               📋 <span className="hidden sm:inline">Boletim</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setMostrarEntrarOka((atual) => !atual)}
-              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
-            >
-              🏝️ <span className="hidden sm:inline">Entrar numa ilha</span>
-            </button>
+            {usuario?.oka_id != null ? (
+              // Já entrou numa ilha — mostra o código dela de volta (só
+              // informativo, pra não deixar o aluno sem saber qual é o
+              // código depois de já ter entrado) em vez do botão de entrar.
+              <span
+                className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold uppercase tracking-widest text-white backdrop-blur sm:px-4 sm:py-2 sm:text-sm"
+                title="Código da sua ilha"
+              >
+                🏝️ {minhaOkaQuery.data?.codigo ?? '...'}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setMostrarEntrarOka((atual) => !atual)}
+                className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
+              >
+                🏝️ <span className="hidden sm:inline">Entrar numa ilha</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={sair}
