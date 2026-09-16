@@ -7,9 +7,10 @@ import {
   type MacuAvatar,
   type CadastroPayload,
   type EntrarOkaResponse,
+  type Itas,
   type MensagemChat,
-  type Nivel,
   type Nota,
+  type Presenca,
   type NotaPayload,
   type Oka,
   type OkaPessoal,
@@ -120,7 +121,7 @@ export const macuApi = {
   salvarAvatar: (avatar_config: MacuAvatar['avatar_config']) =>
     requisitar<MacuAvatar>('/macu/avatar', { method: 'PUT', body: { avatar_config } }),
 
-  obterNivel: () => requisitar<Nivel>('/macu/nivel'),
+  obterItas: () => requisitar<Itas>('/macu/itas'),
 }
 
 // ---------------------------------------------------------------------------
@@ -171,6 +172,14 @@ export const okaApi = {
     requisitar<EntrarOkaResponse>('/okas/entrar', { method: 'POST', body: { codigo } }),
 
   listarAlunos: (okaId: number) => requisitar<AlunoDaOka[]>(`/okas/${okaId}/alunos`),
+}
+
+// Multiplayer na ilha — ver comentário em types/api.ts sobre ser polling.
+export const presencaApi = {
+  atualizar: (fx: number, fy: number) =>
+    requisitar<void>('/okas/minha/presenca', { method: 'PUT', body: { fx, fy } }),
+
+  listarDaMinhaIlha: () => requisitar<Presenca[]>('/okas/minha/presenca'),
 }
 
 // ---------------------------------------------------------------------------

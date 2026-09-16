@@ -84,11 +84,18 @@ export interface MacuAvatar {
   atualizado_em: string
 }
 
-export interface Nivel {
-  nivel: number
-  xp_total: number
-  xp_neste_nivel: number
-  xp_para_proximo_nivel: number
+export interface Itas {
+  itas_total: number
+}
+
+// Multiplayer (polling, não WebSocket — backend serverless no Vercel não
+// mantém conexão aberta): posição de um colega na mesma ilha agora.
+export interface Presenca {
+  user_id: number
+  nome: string
+  fx: number
+  fy: number
+  avatar_config: Partial<MacuAvatarConfig>
 }
 
 // Oca pessoal do aluno (decoração do "seu espaço" — sem relação com a

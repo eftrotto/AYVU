@@ -11,17 +11,19 @@ from ..deps import exigir_aluno
 
 router = APIRouter(prefix="/macu", tags=["macu"])
 
-# XP não é um contador guardado à parte — é derivado da atividade que já
-# existe (check-in do Reko, conteúdo concluído no Ayvu, pesquisa feita),
-# então não tem como "burlar" ganhando XP sem realmente participar, e não
-# precisa de uma tabela nova só pra isso.
-_XP_POR_CHECKIN_REKO = 10
-_XP_POR_CONTEUDO_CONCLUIDO = 5
-_XP_POR_PESQUISA = 2
-_XP_POR_NIVEL = 50
+# Itás (moeda/pontuação do aluno, referência a "itá" = pedra/semente em
+# tupi) não são um contador guardado à parte — são derivados da atividade
+# que já existe (check-in do Reko, conteúdo concluído no Ayvu, pesquisa
+# feita), então não tem como "burlar" ganhando Itás sem realmente
+# participar, e não precisa de uma tabela nova só pra isso. Todo aluno
+# recém-cadastrado começa em 0 porque ainda não tem nenhuma dessas
+# atividades registrada.
+_ITAS_POR_CHECKIN_REKO = 10
+_ITAS_POR_CONTEUDO_CONCLUIDO = 5
+_ITAS_POR_PESQUISA = 2
 
 
-def _calcular_nivel(db: Session, aluno_id: int) -> schemas.NivelOut:
+def _calcular_itas(db: Session, aluno_id: int) -> schemas.ItasOut:
     total_checkins = db.scalar(
         select(func.count(models.RekoCheckin.id)).where(models.RekoCheckin.user_id == aluno_id)
     )
@@ -35,29 +37,21 @@ def _calcular_nivel(db: Session, aluno_id: int) -> schemas.NivelOut:
         select(func.count(models.PesquisaAyvu.id)).where(models.PesquisaAyvu.user_id == aluno_id)
     )
 
-    xp_total = (
-        total_checkins * _XP_POR_CHECKIN_REKO
-        + total_concluidos * _XP_POR_CONTEUDO_CONCLUIDO
-        + total_pesquisas * _XP_POR_PESQUISA
+    itas_total = (
+        total_checkins * _ITAS_POR_CHECKIN_REKO
+        + total_concluidos * _ITAS_POR_CONTEUDO_CONCLUIDO
+        + total_pesquisas * _ITAS_POR_PESQUISA
     )
 
-    nivel = 1 + xp_total // _XP_POR_NIVEL
-    xp_neste_nivel = xp_total % _XP_POR_NIVEL
-
-    return schemas.NivelOut(
-        nivel=nivel,
-        xp_total=xp_total,
-        xp_neste_nivel=xp_neste_nivel,
-        xp_para_proximo_nivel=_XP_POR_NIVEL,
-    )
+    return schemas.ItasOut(itas_total=itas_total)
 
 
-@router.get("/nivel", response_model=schemas.NivelOut)
-def obter_nivel(
+@router.get("/itas", response_model=schemas.ItasOut)
+def obter_itas(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    return _calcular_nivel(db, aluno.id)
+    return _calcular_itas(db, aluno.id)
 
 
 def _avatar_padrao(user_id: int) -> schemas.MacuAvatarOut:

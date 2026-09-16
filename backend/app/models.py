@@ -88,6 +88,26 @@ class MacuAvatar(Base):
     )
 
 
+class PresencaIlha(Base):
+    """Posição atual do aluno na ilha (fração 0-1 da elipse de grama), pra
+    multiplayer via polling — o backend é serverless (Vercel), não mantém
+    WebSocket aberto, então cada aluno manda sua posição periodicamente e
+    os colegas da mesma Oka fazem polling disso (ver routers/okas.py). Usa
+    datetime.utcnow() (não server_default=func.now()) de propósito: a
+    verificação de "presença recente" compara direto com utcnow() em
+    Python, e misturar hora do servidor de banco com hora da aplicação дá
+    dá margem a erro de fuso.
+    """
+
+    __tablename__ = "presencas_ilha"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), unique=True, index=True)
+    fx: Mapped[float] = mapped_column(Float)
+    fy: Mapped[float] = mapped_column(Float)
+    atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class OkaPessoal(Base):
     """
     A Oka pessoal do aluno — espaço privado pra decorar (referência à oca

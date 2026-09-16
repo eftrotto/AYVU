@@ -8,6 +8,7 @@ import { AVATAR_PADRAO } from '../../macu/lpcData'
 import { NivelBar } from '../../macu/NivelBar'
 import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
+import { OutrosMacusNaIlha } from './OutrosMacusNaIlha'
 
 type Fase = 'ocioso' | 'caindo' | 'ondulando' | 'pulando' | 'mergulhando' | 'saindo'
 
@@ -329,6 +330,7 @@ export function LagoaCena() {
               arvoreRef={arvoreRef}
               ativo={fase === 'ocioso'}
               userId={usuario?.id ?? null}
+              multiplayerAtivo={usuario?.oka_id != null}
               animarPulo={
                 fase === 'pulando'
                   ? { y: [0, -46, -14], rotate: [0, -8, 6] }
@@ -344,6 +346,10 @@ export function LagoaCena() {
                     : { duration: 0.3 }
               }
             />
+          )}
+
+          {usuario?.oka_id != null && (
+            <OutrosMacusNaIlha ilhaRef={ilhaRef} gramaRef={gramaRef} ativo={fase === 'ocioso'} />
           )}
         </div>
 

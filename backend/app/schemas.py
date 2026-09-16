@@ -111,11 +111,21 @@ class MacuAvatarOut(BaseModel):
     atualizado_em: datetime
 
 
-class NivelOut(BaseModel):
-    nivel: int
-    xp_total: int
-    xp_neste_nivel: int
-    xp_para_proximo_nivel: int
+class ItasOut(BaseModel):
+    itas_total: int
+
+
+class PresencaUpsert(BaseModel):
+    fx: float = Field(ge=0, le=1)
+    fy: float = Field(ge=0, le=1)
+
+
+class PresencaOut(BaseModel):
+    user_id: int
+    nome: str
+    fx: float
+    fy: float
+    avatar_config: dict[str, Any]
 
 
 class OkaPessoalUpsert(BaseModel):

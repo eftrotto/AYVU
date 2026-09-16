@@ -1,5 +1,7 @@
+import json
 import random
 import string
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -70,6 +72,67 @@ def entrar_na_oka(
     aluno.oka_id = oka.id
     db.commit()
     return schemas.EntrarOkaOut(oka_id=oka.id, nome_oka=oka.nome)
+
+
+# Multiplayer na ilha (ver models.PresencaIlha pro porquê de ser polling em
+# vez de WebSocket). Uma presença "some" sozinha — sem endpoint de sair —
+# quando o aluno para de atualizar por mais que esse limiar (fechou a aba,
+# trocou de tela); ver MacuNaIlha.tsx pro heartbeat que evita isso acontecer
+# só por ele ter ficado parado.
+_SEGUNDOS_PRESENCA_EXPIRA = 8
+
+
+@router.put("/minha/presenca", status_code=204)
+def atualizar_presenca(
+    dados: schemas.PresencaUpsert,
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    registro = db.execute(
+        select(models.PresencaIlha).where(models.PresencaIlha.user_id == aluno.id)
+    ).scalar_one_or_none()
+
+    if registro is None:
+        registro = models.PresencaIlha(user_id=aluno.id, fx=dados.fx, fy=dados.fy)
+        db.add(registro)
+    else:
+        registro.fx = dados.fx
+        registro.fy = dados.fy
+
+    db.commit()
+
+
+@router.get("/minha/presenca", response_model=list[schemas.PresencaOut])
+def listar_presencas_da_minha_ilha(
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    if aluno.oka_id is None:
+        return []
+
+    linhas = db.execute(
+        select(models.PresencaIlha, models.Usuario, models.MacuAvatar)
+        .join(models.Usuario, models.Usuario.id == models.PresencaIlha.user_id)
+        .outerjoin(models.MacuAvatar, models.MacuAvatar.user_id == models.PresencaIlha.user_id)
+        .where(
+            models.Usuario.oka_id == aluno.oka_id,
+            models.PresencaIlha.user_id != aluno.id,
+        )
+    ).all()
+
+    limite = datetime.utcnow() - timedelta(seconds=_SEGUNDOS_PRESENCA_EXPIRA)
+
+    return [
+        schemas.PresencaOut(
+            user_id=usuario.id,
+            nome=usuario.nome,
+            fx=presenca.fx,
+            fy=presenca.fy,
+            avatar_config=json.loads(avatar.avatar_config) if avatar else {},
+        )
+        for presenca, usuario, avatar in linhas
+        if presenca.atualizado_em >= limite
+    ]
 
 
 _QUANTIDADE_MENSAGENS_CHAT = 200

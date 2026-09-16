@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { motion, useAnimationFrame, useMotionValue, type TargetAndTransition, type Transition } from 'framer-motion'
 import type { MacuAvatarConfig } from '../../../types/api'
+import { presencaApi } from '../../../lib/apiClient'
 import { AvatarStage } from '../../macu/AvatarStage'
 import {
   LPC_FRAME_ROW,
@@ -23,10 +24,16 @@ interface MacuNaIlhaProps {
   arvoreRef: React.RefObject<HTMLDivElement | null>
   ativo: boolean
   userId: number | null
+  // Aluno entrou numa ilha de professor (usuario.oka_id != null): manda a
+  // posição pro backend periodicamente, pra outros alunos da mesma ilha
+  // verem esse Macu (ver OutrosMacusNaIlha.tsx). Sem isso, fica só local.
+  multiplayerAtivo?: boolean
   animarPulo?: TargetAndTransition
   transicaoPulo?: Transition
   tamanho?: number
 }
+
+const INTERVALO_HEARTBEAT_MS = 3000
 
 const VELOCIDADE_PX_POR_S = 260
 const RAIO_MACU = 30
@@ -58,7 +65,7 @@ interface Marcador {
  * continua válida se a tela for redimensionada entre sessões.
  */
 export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function MacuNaIlha(
-  { config, ilhaRef, gramaRef, arvoreRef, ativo, userId, animarPulo, transicaoPulo, tamanho = 132 },
+  { config, ilhaRef, gramaRef, arvoreRef, ativo, userId, multiplayerAtivo = false, animarPulo, transicaoPulo, tamanho = 132 },
   refExterno,
 ) {
   const x = useMotionValue(0)
@@ -68,6 +75,7 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
   const prontoRef = useRef(false)
   const alvoRef = useRef<{ x: number; y: number } | null>(null)
   const ultimoSalvamento = useRef(0)
+  const ultimoEnvioRede = useRef(0)
   const ultimoTempoRef = useRef<number | null>(null)
   const [marcador, setMarcador] = useState<Marcador | null>(null)
   const [quadro, setQuadro] = useState({ linha: LPC_FRAME_ROW, coluna: 0 })
@@ -100,18 +108,54 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
     return { x: px, y: py }
   }, [])
 
+  const fracaoAtual = useCallback(() => {
+    const { cx, cy, rx, ry } = limitesRef.current
+    if (rx <= 0 || ry <= 0) return null
+    return {
+      fx: Math.min(1, Math.max(0, (x.get() - (cx - rx)) / (rx * 2))),
+      fy: Math.min(1, Math.max(0, (y.get() - (cy - ry)) / (ry * 2))),
+    }
+  }, [x, y])
+
+  // Manda pro backend com um throttle mais folgado que o do localStorage
+  // (rede custa mais que gravar local) — outros alunos da mesma ilha fazem
+  // polling disso (ver OutrosMacusNaIlha.tsx). Falha em silêncio: não é
+  // crítico perder um envio, o próximo (ou o heartbeat) corrige.
+  const enviarPresenca = useCallback(
+    (forcar = false) => {
+      if (!multiplayerAtivo) return
+      const agora = performance.now()
+      if (!forcar && agora - ultimoEnvioRede.current < 1200) return
+      ultimoEnvioRede.current = agora
+
+      const fracao = fracaoAtual()
+      if (!fracao) return
+      void presencaApi.atualizar(fracao.fx, fracao.fy).catch(() => {})
+    },
+    [multiplayerAtivo, fracaoAtual],
+  )
+
   const persistir = useCallback(() => {
+    enviarPresenca()
     if (userId == null) return
     const agora = performance.now()
     if (agora - ultimoSalvamento.current < 400) return
     ultimoSalvamento.current = agora
 
-    const { cx, cy, rx, ry } = limitesRef.current
-    if (rx <= 0 || ry <= 0) return
-    const fx = Math.min(1, Math.max(0, (x.get() - (cx - rx)) / (rx * 2)))
-    const fy = Math.min(1, Math.max(0, (y.get() - (cy - ry)) / (ry * 2)))
-    salvarPosicao(userId, { fx, fy })
-  }, [userId, x, y])
+    const fracao = fracaoAtual()
+    if (!fracao) return
+    salvarPosicao(userId, fracao)
+  }, [userId, fracaoAtual, enviarPresenca])
+
+  // Heartbeat: sem isso, um aluno parado (não anda por >3s) some da tela
+  // dos colegas depois de alguns segundos, porque só o loop de movimento
+  // chama persistir()/enviarPresenca() — plantado aqui, continua "presente"
+  // mesmo parado.
+  useEffect(() => {
+    if (!multiplayerAtivo || !ativo) return undefined
+    const id = window.setInterval(() => enviarPresenca(true), INTERVALO_HEARTBEAT_MS)
+    return () => window.clearInterval(id)
+  }, [multiplayerAtivo, ativo, enviarPresenca])
 
   const medirLimites = useCallback(() => {
     const ilha = ilhaRef.current
@@ -153,6 +197,9 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
         x.set(posicaoPadraoRef.current.x)
         y.set(posicaoPadraoRef.current.y)
       }
+      // Primeira posição já assentada: avisa a ilha na hora, sem esperar o
+      // 1º heartbeat (até 3s) ou o aluno se mexer.
+      enviarPresenca(true)
     } else if (limitesAnteriores.rx > 0 && limitesAnteriores.ry > 0) {
       // A tela mudou de tamanho (ex: rotação, resize): reaplica a MESMA
       // fração relativa que o Macu já estava, pros novos limites — sem
@@ -163,7 +210,7 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
       x.set(cx - rx + fx * (rx * 2))
       y.set(cy - ry + fy * (ry * 2))
     }
-  }, [ilhaRef, gramaRef, arvoreRef, userId, x, y])
+  }, [ilhaRef, gramaRef, arvoreRef, userId, x, y, enviarPresenca])
 
   useEffect(() => {
     medirLimites()
