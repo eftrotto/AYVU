@@ -6,6 +6,7 @@ import { Card } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { ApiError, chatApi, notaApi, okaApi, rekoApi } from '../../lib/apiClient'
+import { IlhaAoVivo } from './IlhaAoVivo'
 import { useAuth } from '../auth/AuthContext'
 import type { NotaPayload, Oka, RekoMedias, SinalBemEstar } from '../../types/api'
 
@@ -143,6 +144,10 @@ export function ProfessorDashboard() {
 
           {okaSelecionada && (
             <>
+              <Card className="overflow-hidden p-0">
+                <IlhaAoVivo okaId={okaSelecionada.id} />
+              </Card>
+
               <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-secondary">Código de convite</p>

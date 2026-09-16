@@ -184,6 +184,9 @@ export const presencaApi = {
     requisitar<void>('/okas/minha/presenca', { method: 'PUT', body: { fx, fy } }),
 
   listarDaMinhaIlha: () => requisitar<Presenca[]>('/okas/minha/presenca'),
+
+  // Visão do professor: quem está na ilha dele agora, ao vivo.
+  listarDaOka: (okaId: number) => requisitar<Presenca[]>(`/okas/${okaId}/presenca`),
 }
 
 // ---------------------------------------------------------------------------

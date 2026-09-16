@@ -112,26 +112,26 @@ def atualizar_presenca(
     else:
         registro.fx = dados.fx
         registro.fy = dados.fy
+        # Sem isso, um heartbeat com o aluno PARADO (mesmo fx/fy de antes)
+        # não muda nada no objeto pro SQLAlchemy — ele pula o UPDATE
+        # inteiro (nem dispara o onupdate), e atualizado_em fica velho pra
+        # sempre a partir daí, fazendo a presença "expirar" sozinha mesmo
+        # com o heartbeat rodando certinho (bug real, achado testando).
+        registro.atualizado_em = datetime.utcnow()
 
     db.commit()
 
 
-@router.get("/minha/presenca", response_model=list[schemas.PresencaOut])
-def listar_presencas_da_minha_ilha(
-    db: Session = Depends(get_db),
-    aluno: models.Usuario = Depends(exigir_aluno),
-):
-    if aluno.oka_id is None:
-        return []
+def _listar_presencas_da_oka(db: Session, oka_id: int, excluir_user_id: int | None) -> list[schemas.PresencaOut]:
+    condicoes = [models.Usuario.oka_id == oka_id]
+    if excluir_user_id is not None:
+        condicoes.append(models.PresencaIlha.user_id != excluir_user_id)
 
     linhas = db.execute(
         select(models.PresencaIlha, models.Usuario, models.MacuAvatar)
         .join(models.Usuario, models.Usuario.id == models.PresencaIlha.user_id)
         .outerjoin(models.MacuAvatar, models.MacuAvatar.user_id == models.PresencaIlha.user_id)
-        .where(
-            models.Usuario.oka_id == aluno.oka_id,
-            models.PresencaIlha.user_id != aluno.id,
-        )
+        .where(*condicoes)
     ).all()
 
     limite = datetime.utcnow() - timedelta(seconds=_SEGUNDOS_PRESENCA_EXPIRA)
@@ -147,6 +147,30 @@ def listar_presencas_da_minha_ilha(
         for presenca, usuario, avatar in linhas
         if presenca.atualizado_em >= limite
     ]
+
+
+@router.get("/minha/presenca", response_model=list[schemas.PresencaOut])
+def listar_presencas_da_minha_ilha(
+    db: Session = Depends(get_db),
+    aluno: models.Usuario = Depends(exigir_aluno),
+):
+    if aluno.oka_id is None:
+        return []
+    return _listar_presencas_da_oka(db, aluno.oka_id, excluir_user_id=aluno.id)
+
+
+@router.get("/{oka_id}/presenca", response_model=list[schemas.PresencaOut])
+def listar_presencas_da_oka_professor(
+    oka_id: int,
+    db: Session = Depends(get_db),
+    professor: models.Usuario = Depends(exigir_professor),
+):
+    """Visão ao vivo do professor: quem está na ilha agora e onde (mesmo
+    multiplayer por polling dos alunos — ver PresencaIlha)."""
+    oka = db.get(models.Oka, oka_id)
+    if oka is None or oka.professor_id != professor.id:
+        raise HTTPException(status_code=404, detail="Ilha não encontrada.")
+    return _listar_presencas_da_oka(db, oka_id, excluir_user_id=None)
 
 
 _QUANTIDADE_MENSAGENS_CHAT = 200
