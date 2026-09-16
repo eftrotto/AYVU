@@ -121,6 +121,35 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
               style={{ left: '50%', top: '55%', width: 38, height: 3, transform: 'translate(-50%, -50%) rotate(20deg)' }}
             />
           </div>
+
+          {/* Cavalete com quadro, no canto direito da elipse verde. */}
+          <div
+            className="absolute z-[1]"
+            style={{ left: '80%', top: '46%', width: 44, height: 60, transform: 'translate(-50%, -50%)' }}
+          >
+            <span
+              className="absolute rounded-full bg-[#6b5238]"
+              style={{ left: 8.5, top: 44.5, width: 28, height: 2.5, transform: 'translate(-50%, -50%) rotate(104deg)' }}
+            />
+            <span
+              className="absolute rounded-full bg-[#6b5238]"
+              style={{ left: 35.5, top: 44.5, width: 28, height: 2.5, transform: 'translate(-50%, -50%) rotate(76deg)' }}
+            />
+            <span
+              className="absolute rounded-full bg-[#5c4530]"
+              style={{ left: 21.5, top: 41, width: 36, height: 2.5, transform: 'translate(-50%, -50%) rotate(85deg)' }}
+            />
+            <span
+              className="absolute rounded-full bg-[#5c4530]"
+              style={{ left: '50%', top: 30, width: 32, height: 2.5, transform: 'translate(-50%, -50%)' }}
+            />
+            <div
+              className="absolute rounded-[2px] shadow-sm"
+              style={{ left: 4, top: 0, width: 36, height: 30, background: '#5c4530' }}
+            >
+              <div className="absolute rounded-[1px] bg-[#f7f1e3]" style={{ inset: 2 }} />
+            </div>
+          </div>
         </div>
 
         {/* Fora da div de 14%/55% de propósito: cx/cy/rx/ry são medidos
