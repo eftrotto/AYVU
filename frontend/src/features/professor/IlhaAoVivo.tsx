@@ -84,25 +84,42 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
             className="absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] bg-gradient-to-b from-[#5f9448] to-[#3f6c32]"
           />
 
-          <div className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 90, height: 122 }}>
+          {/* Fogueira (pedras + gravetos cruzados, apagada — sem emoji de
+              chama, mesma linguagem visual da Oka pessoal) no lugar do
+              coqueiro. */}
+          <div
+            className="absolute z-[1]"
+            style={{ left: '50%', top: '34%', width: 70, height: 36, transform: 'translate(-50%, -50%)' }}
+          >
             <div
-              className="absolute bottom-0 left-[30%] origin-bottom rounded-full bg-[#7a5636]"
-              style={{ width: 10, height: '72%', transform: 'rotate(-10deg)' }}
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                width: 60,
+                height: 30,
+                background: 'radial-gradient(ellipse, rgba(255,140,40,0.35) 0%, rgba(255,90,20,0) 75%)',
+                filter: 'blur(1px)',
+              }}
             />
-            {[-65, -32, -2, 28, 58].map((angulo) => (
-              <span
-                key={angulo}
-                className="absolute rounded-[50%] border border-black/30 bg-[#2f7a2a]"
-                style={{
-                  left: '38%',
-                  top: '26%',
-                  width: 42,
-                  height: 12,
-                  transformOrigin: '0% 50%',
-                  transform: `rotate(${angulo}deg)`,
-                }}
-              />
-            ))}
+            {[0, 40, 80, 120, 160, 200, 240, 280, 320].map((angulo) => {
+              const rad = (angulo * Math.PI) / 180
+              const x = 35 + Math.cos(rad) * 27
+              const y = 20 + Math.sin(rad) * 10
+              return (
+                <span
+                  key={angulo}
+                  className="absolute rounded-[45%] bg-[#8a8072]"
+                  style={{ left: x, top: y, width: 8, height: 6, transform: 'translate(-50%, -50%)' }}
+                />
+              )
+            })}
+            <span
+              className="absolute rounded-full bg-[#5c4530]"
+              style={{ left: '50%', top: '55%', width: 38, height: 3, transform: 'translate(-50%, -50%) rotate(-20deg)' }}
+            />
+            <span
+              className="absolute rounded-full bg-[#6b5238]"
+              style={{ left: '50%', top: '55%', width: 38, height: 3, transform: 'translate(-50%, -50%) rotate(20deg)' }}
+            />
           </div>
         </div>
 
