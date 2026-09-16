@@ -110,47 +110,47 @@ export function LagoaCena() {
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-[#12313a]">
       {!emMovimento && (
-        <div className="absolute right-4 top-4 z-40 flex flex-col items-end gap-2">
-          <div className="flex gap-2">
+        <div className="absolute right-2 top-2 z-40 flex max-w-[92vw] flex-col items-end gap-2 sm:right-4 sm:top-4">
+          <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => navigate('/aluno/macu')}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
-              🧑‍🎨 Meu Macu
+              🧑‍🎨 <span className="hidden sm:inline">Meu Macu</span>
             </button>
             <button
               type="button"
               onClick={() => navigate('/aluno/oka')}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
-              🛖 Oka
+              🛖 <span className="hidden sm:inline">Oka</span>
             </button>
             <button
               type="button"
               onClick={() => navigate('/aluno/chat')}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
-              💬 Chat
+              💬 <span className="hidden sm:inline">Chat</span>
             </button>
             <button
               type="button"
               onClick={() => navigate('/aluno/boletim')}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
-              📋 Boletim
+              📋 <span className="hidden sm:inline">Boletim</span>
             </button>
             <button
               type="button"
               onClick={() => setMostrarEntrarOka((atual) => !atual)}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
-              🏝️ Entrar numa ilha
+              🏝️ <span className="hidden sm:inline">Entrar numa ilha</span>
             </button>
             <button
               type="button"
               onClick={sair}
-              className="rounded-full border border-white/30 bg-white/15 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/25"
+              className="rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
               Sair
             </button>
@@ -162,7 +162,7 @@ export function LagoaCena() {
                 e.preventDefault()
                 if (codigoOka.trim()) entrarOka.mutate(codigoOka.trim())
               }}
-              className="flex flex-col gap-2 rounded-2xl border border-white/30 bg-white/95 p-3 shadow-xl"
+              className="flex w-full max-w-56 flex-col gap-2 rounded-2xl border border-white/30 bg-white/95 p-3 shadow-xl"
             >
               <label className="text-xs font-bold text-[#2d2620]">Código da ilha</label>
               <input
@@ -171,10 +171,10 @@ export function LagoaCena() {
                 onChange={(e) => setCodigoOka(e.target.value.toUpperCase())}
                 placeholder="ex: AYVU4X"
                 maxLength={10}
-                className="w-40 rounded-lg border border-border bg-[#fffaf3] px-2.5 py-1.5 text-sm uppercase tracking-widest text-[#2d2620] outline-none focus:border-accent"
+                className="w-full rounded-lg border border-border bg-[#fffaf3] px-2.5 py-1.5 text-sm uppercase tracking-widest text-[#2d2620] outline-none focus:border-accent"
               />
               {entrarOka.isError && (
-                <p className="max-w-40 text-xs font-semibold text-erro">
+                <p className="text-xs font-semibold text-erro">
                   {entrarOka.error instanceof ApiError ? entrarOka.error.message : 'Não foi possível entrar.'}
                 </p>
               )}
