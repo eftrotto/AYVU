@@ -103,6 +103,15 @@ class PresencaIlha(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), unique=True, index=True)
+
+    # Guardado explícito (não via usuarios.oka_id) porque o professor TAMBÉM
+    # tem presença agora, e usuarios.oka_id só existe pro aluno que entrou
+    # numa ilha — o dono da ilha (professor) não tem esse campo preenchido.
+    # Nullable só por causa de linhas antigas de antes dessa coluna existir;
+    # elas já estão velhas o bastante pra nunca passar no filtro de
+    # "presença recente" mesmo assim.
+    oka_id: Mapped[int | None] = mapped_column(ForeignKey("okas.id"), index=True, nullable=True)
+
     fx: Mapped[float] = mapped_column(Float)
     fy: Mapped[float] = mapped_column(Float)
     atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

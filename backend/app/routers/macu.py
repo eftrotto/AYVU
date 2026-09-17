@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
-from ..deps import exigir_aluno
+from ..deps import exigir_aluno, exigir_professor
 
 router = APIRouter(prefix="/macu", tags=["macu"])
 
@@ -93,6 +93,60 @@ def salvar_avatar(
 
     if registro is None:
         registro = models.MacuAvatar(user_id=aluno.id, avatar_config=config_serializada)
+        db.add(registro)
+    else:
+        registro.avatar_config = config_serializada
+
+    db.commit()
+    db.refresh(registro)
+
+    return schemas.MacuAvatarOut(
+        user_id=registro.user_id,
+        avatar_config=json.loads(registro.avatar_config),
+        atualizado_em=registro.atualizado_em,
+    )
+
+
+# Boneco do professor — fase de teste: ao contrário do Macu do aluno (7
+# camadas customizáveis, ver lpcData.ts), o professor só escolhe entre 2
+# presets fixos (masculino/feminino) no frontend e manda o config pronto
+# aqui. Reaproveita a MESMA tabela MacuAvatar (é só user_id -> config JSON,
+# não importa o tipo de usuário) em vez de criar uma tabela nova.
+
+
+@router.get("/avatar-professor", response_model=schemas.MacuAvatarOut)
+def obter_avatar_professor(
+    db: Session = Depends(get_db),
+    professor: models.Usuario = Depends(exigir_professor),
+):
+    registro = db.execute(
+        select(models.MacuAvatar).where(models.MacuAvatar.user_id == professor.id)
+    ).scalar_one_or_none()
+
+    if registro is None:
+        return _avatar_padrao(professor.id)
+
+    return schemas.MacuAvatarOut(
+        user_id=registro.user_id,
+        avatar_config=json.loads(registro.avatar_config),
+        atualizado_em=registro.atualizado_em,
+    )
+
+
+@router.put("/avatar-professor", response_model=schemas.MacuAvatarOut)
+def salvar_avatar_professor(
+    entrada: schemas.MacuAvatarUpsert,
+    db: Session = Depends(get_db),
+    professor: models.Usuario = Depends(exigir_professor),
+):
+    registro = db.execute(
+        select(models.MacuAvatar).where(models.MacuAvatar.user_id == professor.id)
+    ).scalar_one_or_none()
+
+    config_serializada = json.dumps(entrada.avatar_config, ensure_ascii=False)
+
+    if registro is None:
+        registro = models.MacuAvatar(user_id=professor.id, avatar_config=config_serializada)
         db.add(registro)
     else:
         registro.avatar_config = config_serializada

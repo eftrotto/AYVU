@@ -89,10 +89,12 @@ export interface Itas {
 }
 
 // Multiplayer (polling, não WebSocket — backend serverless no Vercel não
-// mantém conexão aberta): posição de um colega na mesma ilha agora.
+// mantém conexão aberta): posição de um colega (ou do professor, agora
+// também presente) na mesma ilha agora.
 export interface Presenca {
   user_id: number
   nome: string
+  tipo: TipoUsuario
   fx: number
   fy: number
   avatar_config: Partial<MacuAvatarConfig>

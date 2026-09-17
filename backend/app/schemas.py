@@ -123,6 +123,7 @@ class PresencaUpsert(BaseModel):
 class PresencaOut(BaseModel):
     user_id: int
     nome: str
+    tipo: models.TipoUsuario
     fx: float
     fy: float
     avatar_config: dict[str, Any]

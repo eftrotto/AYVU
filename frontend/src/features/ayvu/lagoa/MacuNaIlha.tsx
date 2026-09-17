@@ -18,7 +18,9 @@ export interface MacuNaIlhaHandle {
 }
 
 interface MacuNaIlhaProps {
-  config: MacuAvatarConfig
+  // Opcional só quando renderPersonagem é passado (ver abaixo) — o
+  // professor não usa config/AvatarStage nenhum, então nesse caso fica sem valor.
+  config?: MacuAvatarConfig
   ilhaRef: React.RefObject<HTMLDivElement | null>
   gramaRef: React.RefObject<HTMLDivElement | null>
   arvoreRef: React.RefObject<HTMLDivElement | null>
@@ -28,6 +30,15 @@ interface MacuNaIlhaProps {
   // posição pro backend periodicamente, pra outros alunos da mesma ilha
   // verem esse Macu (ver OutrosMacusNaIlha.tsx). Sem isso, fica só local.
   multiplayerAtivo?: boolean
+  // Por padrão manda pra /okas/minha/presenca (aluno). O professor não tem
+  // esse endpoint (não tem usuarios.oka_id) — ver IlhaAoVivo.tsx, que passa
+  // aqui a chamada pro endpoint dele em vez disso.
+  onEnviarPresenca?: (fx: number, fy: number) => Promise<void>
+  // Substitui o <AvatarStage> padrão (Macu do aluno) por outro desenho —
+  // usado pelo professor, que é um pajé/xamã em vez do Macu (ver
+  // PajeStage.tsx e IlhaAoVivo.tsx). Recebe o estado de animação (direção
+  // do quadro de caminhada) pra quem quiser reagir a ele, ex: virar de lado.
+  renderPersonagem?: (estado: { linha: number; coluna: number; tamanho: number }) => React.ReactNode
   animarPulo?: TargetAndTransition
   transicaoPulo?: Transition
   tamanho?: number
@@ -65,7 +76,20 @@ interface Marcador {
  * continua válida se a tela for redimensionada entre sessões.
  */
 export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function MacuNaIlha(
-  { config, ilhaRef, gramaRef, arvoreRef, ativo, userId, multiplayerAtivo = false, animarPulo, transicaoPulo, tamanho = 132 },
+  {
+    config,
+    ilhaRef,
+    gramaRef,
+    arvoreRef,
+    ativo,
+    userId,
+    multiplayerAtivo = false,
+    onEnviarPresenca,
+    renderPersonagem,
+    animarPulo,
+    transicaoPulo,
+    tamanho = 132,
+  },
   refExterno,
 ) {
   const x = useMotionValue(0)
@@ -130,9 +154,10 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
 
       const fracao = fracaoAtual()
       if (!fracao) return
-      void presencaApi.atualizar(fracao.fx, fracao.fy).catch(() => {})
+      const enviar = onEnviarPresenca ?? presencaApi.atualizar
+      void enviar(fracao.fx, fracao.fy).catch(() => {})
     },
-    [multiplayerAtivo, fracaoAtual],
+    [multiplayerAtivo, fracaoAtual, onEnviarPresenca],
   )
 
   const persistir = useCallback(() => {
@@ -335,13 +360,17 @@ export const MacuNaIlha = forwardRef<MacuNaIlhaHandle, MacuNaIlhaProps>(function
         transition={transicaoPulo}
       >
         <div style={{ transform: 'translate(-50%, -82%)' }}>
-          <AvatarStage
-            config={config}
-            tamanho={tamanho}
-            comMoldura={false}
-            linha={quadro.linha}
-            coluna={quadro.coluna}
-          />
+          {renderPersonagem ? (
+            renderPersonagem({ linha: quadro.linha, coluna: quadro.coluna, tamanho })
+          ) : (
+            <AvatarStage
+              config={config!}
+              tamanho={tamanho}
+              comMoldura={false}
+              linha={quadro.linha}
+              coluna={quadro.coluna}
+            />
+          )}
         </div>
       </motion.div>
     </>

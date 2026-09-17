@@ -107,11 +107,12 @@ def atualizar_presenca(
     ).scalar_one_or_none()
 
     if registro is None:
-        registro = models.PresencaIlha(user_id=aluno.id, fx=dados.fx, fy=dados.fy)
+        registro = models.PresencaIlha(user_id=aluno.id, oka_id=aluno.oka_id, fx=dados.fx, fy=dados.fy)
         db.add(registro)
     else:
         registro.fx = dados.fx
         registro.fy = dados.fy
+        registro.oka_id = aluno.oka_id
         # Sem isso, um heartbeat com o aluno PARADO (mesmo fx/fy de antes)
         # não muda nada no objeto pro SQLAlchemy — ele pula o UPDATE
         # inteiro (nem dispara o onupdate), e atualizado_em fica velho pra
@@ -122,8 +123,38 @@ def atualizar_presenca(
     db.commit()
 
 
+@router.put("/{oka_id}/presenca-professor", status_code=204)
+def atualizar_presenca_professor(
+    oka_id: int,
+    dados: schemas.PresencaUpsert,
+    db: Session = Depends(get_db),
+    professor: models.Usuario = Depends(exigir_professor),
+):
+    """Mesma ideia de atualizar_presenca, mas pro professor — que não tem
+    usuarios.oka_id (esse campo é só do aluno que entrou numa ilha, ver
+    modelo), então o oka_id vem explícito na URL, com posse conferida."""
+    oka = db.get(models.Oka, oka_id)
+    if oka is None or oka.professor_id != professor.id:
+        raise HTTPException(status_code=404, detail="Ilha não encontrada.")
+
+    registro = db.execute(
+        select(models.PresencaIlha).where(models.PresencaIlha.user_id == professor.id)
+    ).scalar_one_or_none()
+
+    if registro is None:
+        registro = models.PresencaIlha(user_id=professor.id, oka_id=oka_id, fx=dados.fx, fy=dados.fy)
+        db.add(registro)
+    else:
+        registro.fx = dados.fx
+        registro.fy = dados.fy
+        registro.oka_id = oka_id
+        registro.atualizado_em = datetime.utcnow()
+
+    db.commit()
+
+
 def _listar_presencas_da_oka(db: Session, oka_id: int, excluir_user_id: int | None) -> list[schemas.PresencaOut]:
-    condicoes = [models.Usuario.oka_id == oka_id]
+    condicoes = [models.PresencaIlha.oka_id == oka_id]
     if excluir_user_id is not None:
         condicoes.append(models.PresencaIlha.user_id != excluir_user_id)
 
@@ -140,6 +171,7 @@ def _listar_presencas_da_oka(db: Session, oka_id: int, excluir_user_id: int | No
         schemas.PresencaOut(
             user_id=usuario.id,
             nome=usuario.nome,
+            tipo=usuario.tipo,
             fx=presenca.fx,
             fy=presenca.fy,
             avatar_config=json.loads(avatar.avatar_config) if avatar else {},

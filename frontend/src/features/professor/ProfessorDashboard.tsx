@@ -145,7 +145,7 @@ export function ProfessorDashboard() {
           {okaSelecionada && (
             <>
               <Card className="overflow-hidden p-0">
-                <IlhaAoVivo okaId={okaSelecionada.id} />
+                <IlhaAoVivo key={okaSelecionada.id} okaId={okaSelecionada.id} />
               </Card>
 
               <Card className="flex flex-wrap items-center justify-between gap-3 p-5">

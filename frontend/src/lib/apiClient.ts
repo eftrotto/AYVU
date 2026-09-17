@@ -122,6 +122,13 @@ export const macuApi = {
     requisitar<MacuAvatar>('/macu/avatar', { method: 'PUT', body: { avatar_config } }),
 
   obterItas: () => requisitar<Itas>('/macu/itas'),
+
+  // Boneco do professor — fase de teste, sem customização: só escolhe entre
+  // 2 presets fixos (ver lpcData.ts), mas usa o mesmo formato de sempre.
+  obterAvatarProfessor: () => requisitar<MacuAvatar>('/macu/avatar-professor'),
+
+  salvarAvatarProfessor: (avatar_config: MacuAvatar['avatar_config']) =>
+    requisitar<MacuAvatar>('/macu/avatar-professor', { method: 'PUT', body: { avatar_config } }),
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +194,10 @@ export const presencaApi = {
 
   // Visão do professor: quem está na ilha dele agora, ao vivo.
   listarDaOka: (okaId: number) => requisitar<Presenca[]>(`/okas/${okaId}/presenca`),
+
+  // Do professor: sua própria posição na ilha (fase de teste — ver IlhaAoVivo.tsx).
+  atualizarProfessor: (okaId: number, fx: number, fy: number) =>
+    requisitar<void>(`/okas/${okaId}/presenca-professor`, { method: 'PUT', body: { fx, fy } }),
 }
 
 // ---------------------------------------------------------------------------

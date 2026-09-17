@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
-import { presencaApi } from '../../lib/apiClient'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { macuApi, presencaApi } from '../../lib/apiClient'
+import { useAuth } from '../auth/AuthContext'
+import { MacuNaIlha, type MacuNaIlhaHandle } from '../ayvu/lagoa/MacuNaIlha'
 import { AvatarStage } from '../macu/AvatarStage'
 import { AVATAR_PADRAO, LPC_FRAME_ROW } from '../macu/lpcData'
+import { PajeStage } from '../macu/PajeStage'
+import type { MacuAvatarConfig } from '../../types/api'
 
 interface IlhaAoVivoProps {
   okaId: number
@@ -21,14 +25,19 @@ const INTERVALO_POLLING_MS = 2000
 
 /**
  * Visão ao vivo da ilha pro professor — a MESMA cena que o aluno vê (ver
- * LagoaCena.tsx), só que compacta e sem Macu/busca próprios (o professor
- * não tem personagem) — só os alunos atualmente presentes, desenhados via
- * polling (mesmo multiplayer da LagoaCena; ver MacuNaIlha.tsx pra quem
- * manda a posição e models.PresencaIlha pro porquê de ser polling).
+ * LagoaCena.tsx), compacta, com os alunos atualmente presentes (via
+ * polling, mesmo multiplayer da LagoaCena — ver MacuNaIlha.tsx e
+ * models.PresencaIlha pro porquê de ser polling) e, agora, o próprio
+ * boneco do professor também, clicável pra caminhar (fase de teste: sem
+ * tela de customização, só 2 presets fixos — ver lpcData.ts).
  */
 export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
+  const { usuario } = useAuth()
+  const queryClient = useQueryClient()
   const ilhaRef = useRef<HTMLDivElement>(null)
   const gramaRef = useRef<HTMLDivElement>(null)
+  const arvoreRef = useRef<HTMLDivElement>(null)
+  const macuHandleRef = useRef<MacuNaIlhaHandle>(null)
   const limitesRef = useRef<Limites>({ cx: 0, cy: 0, rx: 0, ry: 0 })
   const [, forcarRender] = useState(0)
 
@@ -66,11 +75,37 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
     refetchInterval: INTERVALO_POLLING_MS,
   })
 
+  const avatarProfessorQuery = useQuery({
+    queryKey: ['macu', 'avatar-professor'],
+    queryFn: macuApi.obterAvatarProfessor,
+  })
+
+  const escolherAvatar = useMutation({
+    mutationFn: (genero: 'male' | 'female') =>
+      macuApi.salvarAvatarProfessor({ gender: genero } satisfies Partial<MacuAvatarConfig>),
+    onSuccess: (avatar) => queryClient.setQueryData(['macu', 'avatar-professor'], avatar),
+  })
+
+  const bonecoEscolhido =
+    avatarProfessorQuery.data != null && Object.keys(avatarProfessorQuery.data.avatar_config).length > 0
+  const generoProfessor: 'male' | 'female' = avatarProfessorQuery.data?.avatar_config.gender ?? 'male'
+
+  // Filtra a própria presença da lista de "outros" — ela já é desenhada
+  // separadamente abaixo pelo MacuNaIlha (interativo, controlado por esse
+  // professor), então sem isso ele apareceria duas vezes na cena.
+  const outrosJogadores = data?.filter((jogador) => jogador.user_id !== usuario?.id) ?? []
+
   const { cx, cy, rx, ry } = limitesRef.current
 
   return (
     <div className="relative h-64 w-full overflow-hidden rounded-2xl sm:h-80">
-      <div ref={ilhaRef} className="absolute inset-0">
+      <div
+        ref={ilhaRef}
+        className={`absolute inset-0 ${bonecoEscolhido ? 'cursor-pointer' : ''}`}
+        onClick={(e) => {
+          if (bonecoEscolhido) macuHandleRef.current?.moverPara(e.clientX, e.clientY)
+        }}
+      >
         <div className="absolute inset-x-0 top-0 h-[58%] bg-gradient-to-b from-[#ffd9a8] via-[#f2a468] to-[#3c7681]" />
         <div className="absolute left-1/2 top-[30%] h-14 w-14 -translate-x-1/2 rounded-full bg-[#ffedc2] opacity-80 blur-[2px]" />
         <div className="absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-b from-[#4f8f92] via-[#215a63] to-[#0d2c34]">
@@ -159,10 +194,13 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
             errado e ele saía do card (bug real, achado testando). */}
         {rx > 0 &&
           ry > 0 &&
-          data?.map((jogador) => {
+          outrosJogadores.map((jogador) => {
             const x = cx - rx + jogador.fx * (rx * 2)
             const y = cy - ry + jogador.fy * (ry * 2)
-            const config = { ...AVATAR_PADRAO, ...jogador.avatar_config }
+            // Outro professor (raro, mas possível) também é um pajé, um
+            // pouco mais alto, pra manter a mesma diferenciação em qualquer tela.
+            const ehProfessor = jogador.tipo === 'professor'
+            const tamanho = ehProfessor ? 80 : 64
             return (
               <motion.div
                 key={jogador.user_id}
@@ -171,7 +209,17 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
                 transition={{ duration: INTERVALO_POLLING_MS / 1000, ease: 'linear' }}
               >
                 <div className="relative" style={{ transform: 'translate(-50%, -82%)' }}>
-                  <AvatarStage config={config} tamanho={64} comMoldura={false} linha={LPC_FRAME_ROW} coluna={0} />
+                  {ehProfessor ? (
+                    <PajeStage genero={jogador.avatar_config.gender ?? 'male'} tamanho={tamanho} comMoldura={false} />
+                  ) : (
+                    <AvatarStage
+                      config={{ ...AVATAR_PADRAO, ...jogador.avatar_config }}
+                      tamanho={tamanho}
+                      comMoldura={false}
+                      linha={LPC_FRAME_ROW}
+                      coluna={0}
+                    />
+                  )}
                   <span className="absolute left-1/2 top-full mt-0.5 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/45 px-1.5 py-0.5 text-[9px] font-bold text-white">
                     {jogador.nome}
                   </span>
@@ -179,9 +227,56 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
               </motion.div>
             )
           })}
+
+        {bonecoEscolhido && (
+          <MacuNaIlha
+            ref={macuHandleRef}
+            ilhaRef={ilhaRef}
+            gramaRef={gramaRef}
+            arvoreRef={arvoreRef}
+            ativo
+            userId={usuario?.id ?? null}
+            multiplayerAtivo
+            onEnviarPresenca={(fx, fy) => presencaApi.atualizarProfessor(okaId, fx, fy)}
+            tamanho={80}
+            renderPersonagem={({ linha, coluna, tamanho: t }) => (
+              <PajeStage genero={generoProfessor} tamanho={t} comMoldura={false} linha={linha} coluna={coluna} />
+            )}
+          />
+        )}
       </div>
 
-      {data && data.length === 0 && (
+      {avatarProfessorQuery.data && !bonecoEscolhido && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/50 backdrop-blur-sm">
+          <p className="text-xs font-bold text-white">Escolha seu boneco (fase de teste)</p>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => escolherAvatar.mutate('male')}
+              disabled={escolherAvatar.isPending}
+              className="rounded-xl border-2 border-white/40 bg-white/10 p-1 transition-colors hover:border-white disabled:opacity-50"
+            >
+              <PajeStage genero="male" tamanho={56} comMoldura={false} />
+            </button>
+            <button
+              type="button"
+              onClick={() => escolherAvatar.mutate('female')}
+              disabled={escolherAvatar.isPending}
+              className="rounded-xl border-2 border-white/40 bg-white/10 p-1 transition-colors hover:border-white disabled:opacity-50"
+            >
+              <PajeStage genero="female" tamanho={56} comMoldura={false} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {data && outrosJogadores.length === 0 && bonecoEscolhido && (
+        <p className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/30 px-3 py-1 text-xs font-medium text-white">
+          Só você na ilha agora
+        </p>
+      )}
+
+      {data && data.length === 0 && !bonecoEscolhido && (
         <p className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/30 px-3 py-1 text-xs font-medium text-white">
           Ninguém na ilha agora
         </p>

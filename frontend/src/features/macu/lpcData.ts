@@ -97,6 +97,34 @@ export const AVATAR_PADRAO: MacuAvatarConfig = {
   shoeColor: 'black',
 }
 
+// Boneco do professor — fase de teste: mesmo Macu do aluno (sprites LPC),
+// só 2 presets fixos (sem tela de customização) + um cocar desenhado por
+// cima (ver PajeStage.tsx), pra dar a vibe indígena sem inventar um corpo
+// novo do zero.
+export const AVATAR_PROFESSOR_MASCULINO: MacuAvatarConfig = {
+  gender: 'male',
+  skinTone: 'taupe',
+  hairStyle: 'plain',
+  hairColor: 'black',
+  eyebrowStyle: 'thick',
+  eyeColor: 'brown',
+  shirtColor: 'brown',
+  pantsColor: 'brown',
+  shoeColor: 'black',
+}
+
+export const AVATAR_PROFESSOR_FEMININO: MacuAvatarConfig = {
+  gender: 'female',
+  skinTone: 'amber',
+  hairStyle: 'long',
+  hairColor: 'dark_brown',
+  eyebrowStyle: 'thin',
+  eyeColor: 'brown',
+  shirtColor: 'maroon',
+  pantsColor: 'brown',
+  shoeColor: 'brown',
+}
+
 type Camada = 'body' | 'shoes' | 'pants' | 'shirt' | 'eyes' | 'eyebrows' | 'hair'
 
 // Ordem de empilhamento (baixo -> cima), igual ao zPos oficial do LPC:

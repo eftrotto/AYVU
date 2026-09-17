@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { presencaApi } from '../../../lib/apiClient'
 import { AvatarStage } from '../../macu/AvatarStage'
 import { AVATAR_PADRAO, LPC_FRAME_ROW } from '../../macu/lpcData'
+import { PajeStage } from '../../macu/PajeStage'
 
 interface OutrosMacusNaIlhaProps {
   ilhaRef: React.RefObject<HTMLDivElement | null>
@@ -76,7 +77,11 @@ export function OutrosMacusNaIlha({ ilhaRef, gramaRef, ativo }: OutrosMacusNaIlh
       {data.map((jogador) => {
         const x = cx - rx + jogador.fx * (rx * 2)
         const y = cy - ry + jogador.fy * (ry * 2)
-        const config = { ...AVATAR_PADRAO, ...jogador.avatar_config }
+        const ehProfessor = jogador.tipo === 'professor'
+        // Boneco do professor (pajé/xamã, ver PajeStage.tsx) é um pouco
+        // mais alto, pra diferenciar dos alunos à primeira vista (ver
+        // mesma ideia em IlhaAoVivo.tsx).
+        const tamanho = ehProfessor ? 160 : 132
 
         return (
           <motion.div
@@ -86,7 +91,17 @@ export function OutrosMacusNaIlha({ ilhaRef, gramaRef, ativo }: OutrosMacusNaIlh
             transition={{ duration: INTERVALO_POLLING_MS / 1000, ease: 'linear' }}
           >
             <div className="relative" style={{ transform: 'translate(-50%, -82%)' }}>
-              <AvatarStage config={config} tamanho={132} comMoldura={false} linha={LPC_FRAME_ROW} coluna={0} />
+              {ehProfessor ? (
+                <PajeStage genero={jogador.avatar_config.gender ?? 'male'} tamanho={tamanho} comMoldura={false} />
+              ) : (
+                <AvatarStage
+                  config={{ ...AVATAR_PADRAO, ...jogador.avatar_config }}
+                  tamanho={tamanho}
+                  comMoldura={false}
+                  linha={LPC_FRAME_ROW}
+                  coluna={0}
+                />
+              )}
               <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
                 {jogador.nome}
               </span>
