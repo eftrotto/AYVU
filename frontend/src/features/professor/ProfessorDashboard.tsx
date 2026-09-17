@@ -440,7 +440,10 @@ function DesenhoParaCorrigir({ desenho }: { desenho: DesenhoEnviado }) {
         </button>
       </div>
       {desenho.itas_concedidos != null && (
-        <p className="mt-1 text-[10px] font-bold text-accent">🪨 {desenho.itas_concedidos} Itás concedidos</p>
+        <p className="mt-1 flex items-center gap-1 text-[10px] font-bold text-accent">
+          <img src="/assets/ita.png" alt="" className="h-3 w-auto pixelated" />
+          {desenho.itas_concedidos} Itás concedidos
+        </p>
       )}
     </div>
   )

@@ -20,8 +20,9 @@ export function NivelBar({ variante = 'claro', className = '' }: NivelBarProps) 
   const corTexto = variante === 'escuro' ? 'text-white/90 drop-shadow-sm' : 'text-text-soft'
 
   return (
-    <p className={`text-[11px] font-bold ${corTexto} ${className}`}>
-      🪨 {data.itas_total} <span className="font-normal opacity-75">Itás</span>
+    <p className={`flex items-center gap-1 text-[11px] font-bold ${corTexto} ${className}`}>
+      <img src="/assets/ita.png" alt="" className="h-3.5 w-auto pixelated" />
+      {data.itas_total} <span className="font-normal opacity-75">Itás</span>
     </p>
   )
 }
