@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { desafioApi, macuApi, presencaApi } from '../../lib/apiClient'
 import { useAuth } from '../auth/AuthContext'
 import { MacuNaIlha, type MacuNaIlhaHandle } from '../ayvu/lagoa/MacuNaIlha'
+import { Cavalete } from '../ilha/Cavalete'
+import { Fogueira } from '../ilha/Fogueira'
 import { AvatarStage } from '../macu/AvatarStage'
 import { AVATAR_PADRAO, LPC_FRAME_ROW } from '../macu/lpcData'
 import { PajeStage } from '../macu/PajeStage'
@@ -118,6 +120,11 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
   // professor), então sem isso ele apareceria duas vezes na cena.
   const outrosJogadores = data?.filter((jogador) => jogador.user_id !== usuario?.id) ?? []
 
+  // A fogueira acende de acordo com quantos ALUNOS estão na ilha agora (o
+  // professor sozinho não conta) — ver Fogueira.tsx pros 4 níveis.
+  const numAlunosPresentes = outrosJogadores.filter((jogador) => jogador.tipo === 'aluno').length
+  const nivelFogueira = Math.min(3, numAlunosPresentes) as 0 | 1 | 2 | 3
+
   const { cx, cy, rx, ry } = limitesRef.current
 
   return (
@@ -142,86 +149,17 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
             className="absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] bg-gradient-to-b from-[#5f9448] to-[#3f6c32]"
           />
 
-          {/* Fogueira (pedras + gravetos cruzados, apagada — sem emoji de
-              chama, mesma linguagem visual da Oka pessoal) no lugar do
-              coqueiro. */}
-          <div
-            className="absolute z-[1]"
-            style={{ left: '50%', top: '34%', width: 70, height: 36, transform: 'translate(-50%, -50%)' }}
-          >
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-              style={{
-                width: 60,
-                height: 30,
-                background: 'radial-gradient(ellipse, rgba(255,140,40,0.35) 0%, rgba(255,90,20,0) 75%)',
-                filter: 'blur(1px)',
-              }}
-            />
-            {[0, 40, 80, 120, 160, 200, 240, 280, 320].map((angulo) => {
-              const rad = (angulo * Math.PI) / 180
-              const x = 35 + Math.cos(rad) * 27
-              const y = 20 + Math.sin(rad) * 10
-              return (
-                <span
-                  key={angulo}
-                  className="absolute rounded-[45%] bg-[#8a8072]"
-                  style={{ left: x, top: y, width: 8, height: 6, transform: 'translate(-50%, -50%)' }}
-                />
-              )
-            })}
-            <span
-              className="absolute rounded-full bg-[#5c4530]"
-              style={{ left: '50%', top: '55%', width: 38, height: 3, transform: 'translate(-50%, -50%) rotate(-20deg)' }}
-            />
-            <span
-              className="absolute rounded-full bg-[#6b5238]"
-              style={{ left: '50%', top: '55%', width: 38, height: 3, transform: 'translate(-50%, -50%) rotate(20deg)' }}
-            />
-          </div>
+          <Fogueira nivel={nivelFogueira} />
 
-          {/* Cavalete com quadro, no canto direito da elipse verde. */}
-          <div
-            className="absolute z-[1]"
-            style={{ left: '80%', top: '46%', width: 44, height: 60, transform: 'translate(-50%, -50%)' }}
-          >
-            <span
-              className="absolute rounded-full bg-[#6b5238]"
-              style={{ left: 8.5, top: 44.5, width: 28, height: 2.5, transform: 'translate(-50%, -50%) rotate(104deg)' }}
-            />
-            <span
-              className="absolute rounded-full bg-[#6b5238]"
-              style={{ left: 35.5, top: 44.5, width: 28, height: 2.5, transform: 'translate(-50%, -50%) rotate(76deg)' }}
-            />
-            <span
-              className="absolute rounded-full bg-[#5c4530]"
-              style={{ left: 21.5, top: 41, width: 36, height: 2.5, transform: 'translate(-50%, -50%) rotate(85deg)' }}
-            />
-            <span
-              className="absolute rounded-full bg-[#5c4530]"
-              style={{ left: '50%', top: 30, width: 32, height: 2.5, transform: 'translate(-50%, -50%)' }}
-            />
-            <div
-              className="absolute cursor-pointer rounded-[2px] shadow-sm"
-              style={{ left: 4, top: 0, width: 36, height: 30, background: '#5c4530' }}
-              onClick={(e) => {
-                // Sem isso, o clique também dispara o "andar até aqui" do
-                // ilhaRef pai (ver onClick dele lá em cima).
-                e.stopPropagation()
-                setMostrarCriarDesafio(true)
-              }}
-            >
-              <div className="absolute rounded-[1px] bg-[#f7f1e3]" style={{ inset: 2 }} />
-              {desafioAtivo && (
-                <motion.span
-                  className="absolute h-2 w-2 rounded-full bg-erro"
-                  style={{ right: -2, top: -2 }}
-                  animate={{ opacity: [1, 0.35, 1] }}
-                  transition={{ duration: 1.4, repeat: Infinity }}
-                />
-              )}
-            </div>
-          </div>
+          <Cavalete
+            indicadorAtivo={desafioAtivo}
+            onClickQuadro={(e) => {
+              // Sem isso, o clique também dispara o "andar até aqui" do
+              // ilhaRef pai (ver onClick dele lá em cima).
+              e.stopPropagation()
+              setMostrarCriarDesafio(true)
+            }}
+          />
         </div>
 
         {/* Fora da div de 14%/55% de propósito: cx/cy/rx/ry são medidos
