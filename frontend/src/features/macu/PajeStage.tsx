@@ -36,9 +36,12 @@ const BASE = { x: 50, y: 20.5 }
 // Adornos sobrepostos no MESMO quadro do AvatarStage (viewBox 0-100/0-100,
 // igual ao box do boneco) — mais fácil de acertar a posição pensando em %
 // da altura/largura toda do personagem do que num sub-retângulo separado.
-// Ficam sempre na mesma posição visual (não giram com a direção da
-// caminhada, "linha") — simplificação aceitável pra fase de teste.
-function Adornos() {
+// Cocar e lança ficam bem em qualquer direção (topo da cabeça / diagonal
+// nas costas não dependem de ver o rosto), mas pintura facial e cachimbo
+// são desenhados pra posição das bochechas/boca de frente — de perfil
+// (andando pro lado) ficavam flutuando estranhos sobre o corpo, então só
+// aparecem quando o boneco está de frente (linha === LPC_FRAME_ROW).
+function Adornos({ deFrente }: { deFrente: boolean }) {
   return (
     <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
       {/* cocar de penas */}
@@ -61,27 +64,31 @@ function Adornos() {
       })}
       <rect x={BASE.x - 9.5} y={BASE.y - 1.8} width={19} height={3.6} rx={1.4} fill="#7a5636" />
 
-      {/* pintura facial — uma marca em cada bochecha (não uma faixa
-          contínua, que ficava parecendo uma venda), abaixo dos olhos e
-          longe do nariz (rosto visível fica entre ~39% e ~49% de altura;
-          olhos por volta de 42%) */}
-      <rect x={32.5} y={45} width={9} height={3.4} rx={1.4} fill="#c1442c" opacity={0.92} />
-      <rect x={58.5} y={45} width={9} height={3.4} rx={1.4} fill="#c1442c" opacity={0.92} />
-
       {/* lança, só a madeira (sem ponta) — presa nas costas na diagonal
           (não na mão: a mão muda de posição a cada quadro de caminhada, e
           o adorno fica fixo, então "na mão" desalinhava ao andar). */}
       <line x1={30} y1={93} x2={68} y2={19} stroke="#6b5238" strokeWidth={3} strokeLinecap="round" />
 
-      {/* cachimbo da paz, saindo do canto da boca (~47% de altura) — perto
-          do queixo, sem chegar na zona do ombro/braço (que começa por
-          volta de x=68% aí embaixo) senão fica escondido atrás do braço.
-          Traços grossos de propósito: nessa escala (56-160px) qualquer
-          coisa fina vira 1px e some. */}
-      <line x1={56} y1={45.5} x2={65} y2={48.5} stroke="#8a6a4a" strokeWidth={2.8} strokeLinecap="round" />
-      <rect x={64} y={46.3} width={6} height={6} rx={1.4} fill="#3a2a1c" stroke="#1f1610" strokeWidth={0.6} />
-      <circle cx={68.5} cy={42} r={1.8} fill="#e8e8e8" opacity={0.55} />
-      <circle cx={70.5} cy={37} r={2.4} fill="#e8e8e8" opacity={0.4} />
+      {deFrente && (
+        <>
+          {/* pintura facial — uma marca em cada bochecha (não uma faixa
+              contínua, que ficava parecendo uma venda), abaixo dos olhos e
+              longe do nariz (rosto visível fica entre ~39% e ~49% de
+              altura; olhos por volta de 42%) */}
+          <rect x={32.5} y={45} width={9} height={3.4} rx={1.4} fill="#c1442c" opacity={0.92} />
+          <rect x={58.5} y={45} width={9} height={3.4} rx={1.4} fill="#c1442c" opacity={0.92} />
+
+          {/* cachimbo da paz, saindo do canto da boca (~47% de altura) —
+              perto do queixo, sem chegar na zona do ombro/braço (que
+              começa por volta de x=68% aí embaixo) senão fica escondido
+              atrás do braço. Traços grossos de propósito: nessa escala
+              (56-160px) qualquer coisa fina vira 1px e some. */}
+          <line x1={56} y1={45.5} x2={65} y2={48.5} stroke="#8a6a4a" strokeWidth={2.8} strokeLinecap="round" />
+          <rect x={64} y={46.3} width={6} height={6} rx={1.4} fill="#3a2a1c" stroke="#1f1610" strokeWidth={0.6} />
+          <circle cx={68.5} cy={42} r={1.8} fill="#e8e8e8" opacity={0.55} />
+          <circle cx={70.5} cy={37} r={2.4} fill="#e8e8e8" opacity={0.4} />
+        </>
+      )}
     </svg>
   )
 }
@@ -91,7 +98,7 @@ export function PajeStage({ genero, tamanho = 320, comMoldura = true, linha = LP
   return (
     <div className="relative" style={{ width: tamanho, height: tamanho }}>
       <AvatarStage config={config} tamanho={tamanho} comMoldura={comMoldura} linha={linha} coluna={coluna} />
-      <Adornos />
+      <Adornos deFrente={linha === LPC_FRAME_ROW} />
     </div>
   )
 }
