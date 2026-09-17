@@ -16,7 +16,7 @@ O AYVU parte de uma pergunta diferente: em vez de disputar com essa tecnologia, 
 
 **AYVU** significa "voz da alma" na tradição guarani, para eles, a palavra tem uma dimensão sagrada de manifestação do ser. A plataforma propõe justamente isso ao aluno: um espaço para despertar e expressar sua própria voz interior.
 
-O **Ayvu é a própria ilha** — o espaço central e explorável da plataforma, que dá nome ao projeto inteiro. É dentro dela que vivem os outros pilares:
+O **Ayvu é a própria ilha**, o espaço central e explorável da plataforma, que dá nome ao projeto inteiro. É dentro dela que vivem os outros pilares:
 
 ### Macu - como você se expressa
 Um avatar personalizável que representa a identidade do aluno dentro da plataforma, com sprites em pixel art no estilo LPC (cabelo, pele, roupas, acessórios combináveis). O aluno controla o Macu livremente pela ilha.
