@@ -5,10 +5,10 @@ import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Spinner } from '../../components/ui/Spinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
-import { ApiError, chatApi, notaApi, okaApi, rekoApi } from '../../lib/apiClient'
+import { ApiError, chatApi, desafioApi, notaApi, okaApi, rekoApi } from '../../lib/apiClient'
 import { IlhaAoVivo } from './IlhaAoVivo'
 import { useAuth } from '../auth/AuthContext'
-import type { NotaPayload, Oka, RekoMedias, SinalBemEstar } from '../../types/api'
+import type { DesenhoEnviado, NotaPayload, Oka, RekoMedias, SinalBemEstar } from '../../types/api'
 
 function hoje(): string {
   return new Date().toISOString().slice(0, 10)
@@ -157,6 +157,8 @@ export function ProfessorDashboard() {
                   {codigoCopiado ? 'Copiado ✓' : 'Copiar código'}
                 </Button>
               </Card>
+
+              <DesafioDesenhoCard okaId={okaSelecionada.id} />
 
               <Card className="p-5">
                 <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-secondary">
@@ -313,6 +315,134 @@ function ChatDaOkaProfessor({ okaId }: { okaId: number }) {
         </div>
       )}
     </Card>
+  )
+}
+
+function formatarTempoRestante(segundos: number): string {
+  const m = Math.floor(segundos / 60)
+  const s = segundos % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
+function DesafioDesenhoCard({ okaId }: { okaId: number }) {
+  const [mostrarDesenhos, setMostrarDesenhos] = useState(false)
+
+  // Mesma queryKey de IlhaAoVivo/DesafioAtivoModal — os três compartilham o
+  // cache do React Query, então criar um desafio pelo quadro já atualiza
+  // esse card sem nenhum evento manual entre os componentes.
+  const desafioQuery = useQuery({
+    queryKey: ['desafios', 'ativo', okaId],
+    queryFn: () => desafioApi.ativoDaOka(okaId),
+    refetchInterval: 5000,
+  })
+
+  const desafio = desafioQuery.data
+
+  const desenhosQuery = useQuery({
+    queryKey: ['desafios', desafio?.id, 'desenhos'],
+    queryFn: () => desafioApi.listarDesenhos(desafio!.id),
+    enabled: mostrarDesenhos && desafio != null,
+    refetchInterval: mostrarDesenhos ? 5000 : false,
+  })
+
+  return (
+    <Card className="p-5">
+      <h2 className="mb-1 text-xs font-bold uppercase tracking-wide text-secondary">🎨 Desafio de Desenho</h2>
+
+      {!desafio && (
+        <p className="text-sm text-text-soft">Nenhum desafio ainda — clique no quadro na ilha acima pra criar um.</p>
+      )}
+
+      {desafio && (
+        <>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-bold text-text">{desafio.tema}</p>
+              <p className="text-xs text-text-soft">
+                {desafio.tempo_restante_segundos > 0
+                  ? `Em andamento — ${formatarTempoRestante(desafio.tempo_restante_segundos)} restantes`
+                  : 'Encerrado'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMostrarDesenhos((atual) => !atual)}
+              className="text-xs font-bold text-secondary hover:text-accent"
+            >
+              {mostrarDesenhos ? '‹ Fechar' : '📥 Ver desenhos enviados'}
+            </button>
+          </div>
+
+          {mostrarDesenhos && (
+            <>
+              {desenhosQuery.isLoading && <Spinner rotulo="Carregando desenhos..." />}
+
+              {desenhosQuery.data && desenhosQuery.data.length === 0 && (
+                <p className="text-sm text-text-soft">Ninguém enviou um desenho ainda.</p>
+              )}
+
+              {desenhosQuery.data && desenhosQuery.data.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {desenhosQuery.data.map((desenho) => (
+                    <DesenhoParaCorrigir key={desenho.id} desenho={desenho} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+    </Card>
+  )
+}
+
+function DesenhoParaCorrigir({ desenho }: { desenho: DesenhoEnviado }) {
+  const queryClient = useQueryClient()
+  const [nota, setNota] = useState(desenho.nota != null ? String(desenho.nota) : '')
+
+  const darNota = useMutation({
+    mutationFn: (valor: number) => desafioApi.darNota(desenho.id, valor),
+    onSuccess: (atualizado) => {
+      queryClient.setQueryData<DesenhoEnviado[]>(['desafios', atualizado.desafio_id, 'desenhos'], (atual) =>
+        atual?.map((d) => (d.id === atualizado.id ? atualizado : d)),
+      )
+    },
+  })
+
+  return (
+    <div className="rounded-2xl border border-border bg-[#fffaf3] p-2.5">
+      <img
+        src={desenho.imagem}
+        alt={`Desenho de ${desenho.aluno_nome}`}
+        className="mb-2 w-full rounded-xl border border-border bg-white"
+      />
+      <p className="mb-1.5 truncate text-xs font-bold text-text">{desenho.aluno_nome}</p>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="number"
+          min={0}
+          max={10}
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          placeholder="0-10"
+          className="w-14 rounded-lg border border-border bg-card px-2 py-1 text-xs outline-none focus:border-accent"
+        />
+        <button
+          type="button"
+          disabled={darNota.isPending || nota.trim() === ''}
+          onClick={() => {
+            const valor = Number(nota)
+            if (!Number.isNaN(valor)) darNota.mutate(valor)
+          }}
+          className="flex-1 rounded-lg bg-accent px-2 py-1 text-xs font-bold text-white disabled:opacity-50"
+        >
+          {darNota.isPending ? '...' : desenho.nota != null ? 'Atualizar' : 'Salvar'}
+        </button>
+      </div>
+      {desenho.itas_concedidos != null && (
+        <p className="mt-1 text-[10px] font-bold text-accent">🪨 {desenho.itas_concedidos} Itás concedidos</p>
+      )}
+    </div>
   )
 }
 

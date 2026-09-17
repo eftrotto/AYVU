@@ -17,6 +17,8 @@ export default defineConfig({
       '/okas': 'http://127.0.0.1:8000',
       '/oca': 'http://127.0.0.1:8000',
       '/notas': 'http://127.0.0.1:8000',
+      '/desafios': 'http://127.0.0.1:8000',
+      '/desenhos': 'http://127.0.0.1:8000',
     },
   },
 })

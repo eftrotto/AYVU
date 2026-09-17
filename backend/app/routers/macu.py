@@ -14,10 +14,10 @@ router = APIRouter(prefix="/macu", tags=["macu"])
 # Itás (moeda/pontuação do aluno, referência a "itá" = pedra/semente em
 # tupi) não são um contador guardado à parte — são derivados da atividade
 # que já existe (check-in do Reko, conteúdo concluído no Ayvu, pesquisa
-# feita), então não tem como "burlar" ganhando Itás sem realmente
-# participar, e não precisa de uma tabela nova só pra isso. Todo aluno
-# recém-cadastrado começa em 0 porque ainda não tem nenhuma dessas
-# atividades registrada.
+# feita, desenho corrigido no Desafio de Desenho), então não tem como
+# "burlar" ganhando Itás sem realmente participar, e não precisa de uma
+# tabela nova só pra isso. Todo aluno recém-cadastrado começa em 0 porque
+# ainda não tem nenhuma dessas atividades registrada.
 _ITAS_POR_CHECKIN_REKO = 10
 _ITAS_POR_CONTEUDO_CONCLUIDO = 5
 _ITAS_POR_PESQUISA = 2
@@ -36,11 +36,21 @@ def _calcular_itas(db: Session, aluno_id: int) -> schemas.ItasOut:
     total_pesquisas = db.scalar(
         select(func.count(models.PesquisaAyvu.id)).where(models.PesquisaAyvu.user_id == aluno_id)
     )
+    # itas_concedidos só é preenchido quando o professor corrige o desenho
+    # (routers/desafios.py::dar_nota) — antes disso fica nulo e não entra
+    # na soma.
+    total_itas_desenhos = db.scalar(
+        select(func.sum(models.DesenhoEnviado.itas_concedidos)).where(
+            models.DesenhoEnviado.aluno_id == aluno_id,
+            models.DesenhoEnviado.itas_concedidos.isnot(None),
+        )
+    )
 
     itas_total = (
         total_checkins * _ITAS_POR_CHECKIN_REKO
         + total_concluidos * _ITAS_POR_CONTEUDO_CONCLUIDO
         + total_pesquisas * _ITAS_POR_PESQUISA
+        + (total_itas_desenhos or 0)
     )
 
     return schemas.ItasOut(itas_total=itas_total)

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { macuApi, presencaApi } from '../../lib/apiClient'
+import { desafioApi, macuApi, presencaApi } from '../../lib/apiClient'
 import { useAuth } from '../auth/AuthContext'
 import { MacuNaIlha, type MacuNaIlhaHandle } from '../ayvu/lagoa/MacuNaIlha'
 import { AvatarStage } from '../macu/AvatarStage'
@@ -40,6 +40,9 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
   const macuHandleRef = useRef<MacuNaIlhaHandle>(null)
   const limitesRef = useRef<Limites>({ cx: 0, cy: 0, rx: 0, ry: 0 })
   const [, forcarRender] = useState(0)
+  const [mostrarCriarDesafio, setMostrarCriarDesafio] = useState(false)
+  const [temaDesafio, setTemaDesafio] = useState('')
+  const [duracaoDesafio, setDuracaoDesafio] = useState(60)
 
   useEffect(() => {
     function medir() {
@@ -85,6 +88,26 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
       macuApi.salvarAvatarProfessor({ gender: genero } satisfies Partial<MacuAvatarConfig>),
     onSuccess: (avatar) => queryClient.setQueryData(['macu', 'avatar-professor'], avatar),
   })
+
+  // Mesma queryKey usada no card de correção do ProfessorDashboard e no
+  // modal do aluno (DesafioAtivoModal) — os três ficam sincronizados pelo
+  // cache do React Query sem precisar de nenhum evento/callback entre eles.
+  const desafioQuery = useQuery({
+    queryKey: ['desafios', 'ativo', okaId],
+    queryFn: () => desafioApi.ativoDaOka(okaId),
+    refetchInterval: 4000,
+  })
+
+  const criarDesafio = useMutation({
+    mutationFn: () => desafioApi.criar(okaId, temaDesafio.trim(), duracaoDesafio),
+    onSuccess: (desafio) => {
+      queryClient.setQueryData(['desafios', 'ativo', okaId], desafio)
+      setMostrarCriarDesafio(false)
+      setTemaDesafio('')
+    },
+  })
+
+  const desafioAtivo = desafioQuery.data != null && desafioQuery.data.tempo_restante_segundos > 0
 
   const bonecoEscolhido =
     avatarProfessorQuery.data != null && Object.keys(avatarProfessorQuery.data.avatar_config).length > 0
@@ -179,10 +202,24 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
               style={{ left: '50%', top: 30, width: 32, height: 2.5, transform: 'translate(-50%, -50%)' }}
             />
             <div
-              className="absolute rounded-[2px] shadow-sm"
+              className="absolute cursor-pointer rounded-[2px] shadow-sm"
               style={{ left: 4, top: 0, width: 36, height: 30, background: '#5c4530' }}
+              onClick={(e) => {
+                // Sem isso, o clique também dispara o "andar até aqui" do
+                // ilhaRef pai (ver onClick dele lá em cima).
+                e.stopPropagation()
+                setMostrarCriarDesafio(true)
+              }}
             >
               <div className="absolute rounded-[1px] bg-[#f7f1e3]" style={{ inset: 2 }} />
+              {desafioAtivo && (
+                <motion.span
+                  className="absolute h-2 w-2 rounded-full bg-erro"
+                  style={{ right: -2, top: -2 }}
+                  animate={{ opacity: [1, 0.35, 1] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -265,6 +302,52 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
               className="rounded-xl border-2 border-white/40 bg-white/10 p-1 transition-colors hover:border-white disabled:opacity-50"
             >
               <PajeStage genero="female" tamanho={56} comMoldura={false} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {mostrarCriarDesafio && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/60 p-4 backdrop-blur-sm">
+          <p className="text-xs font-bold text-white">🎨 Novo Desafio de Desenho</p>
+          <input
+            autoFocus
+            value={temaDesafio}
+            onChange={(e) => setTemaDesafio(e.target.value)}
+            placeholder="Tema (ex: capivara)"
+            maxLength={200}
+            className="w-full max-w-56 rounded-lg border border-white/30 bg-white/95 px-3 py-2 text-sm text-[#2d2620] outline-none"
+          />
+          <div className="flex gap-1.5">
+            {[30, 60, 90, 120].map((segundos) => (
+              <button
+                key={segundos}
+                type="button"
+                onClick={() => setDuracaoDesafio(segundos)}
+                className={`rounded-full px-2.5 py-1 text-xs font-bold transition-colors ${
+                  duracaoDesafio === segundos ? 'bg-accent text-white' : 'bg-white/20 text-white hover:bg-white/30'
+                }`}
+              >
+                {segundos}s
+              </button>
+            ))}
+          </div>
+          {criarDesafio.isError && <p className="text-xs font-semibold text-erro">Não deu pra criar. Tenta de novo.</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setMostrarCriarDesafio(false)}
+              className="rounded-full border border-white/40 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/10"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={!temaDesafio.trim() || criarDesafio.isPending}
+              onClick={() => criarDesafio.mutate()}
+              className="rounded-full bg-accent px-4 py-1.5 text-xs font-bold text-white hover:bg-accent-dark disabled:opacity-50"
+            >
+              {criarDesafio.isPending ? 'Criando...' : 'Ativar desafio'}
             </button>
           </div>
         </div>

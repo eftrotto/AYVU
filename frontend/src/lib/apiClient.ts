@@ -6,6 +6,8 @@ import {
   type LoginResponse,
   type MacuAvatar,
   type CadastroPayload,
+  type Desafio,
+  type DesenhoEnviado,
   type EntrarOkaResponse,
   type Itas,
   type MensagemChat,
@@ -239,4 +241,29 @@ export const notaApi = {
   doAluno: (alunoId: number) => requisitar<Nota[]>(`/notas/alunos/${alunoId}`),
 
   minhas: () => requisitar<Nota[]>('/notas/minhas'),
+}
+
+// ---------------------------------------------------------------------------
+// Desafio de Desenho — o quadro interativo na ilha do professor
+// ---------------------------------------------------------------------------
+
+export const desafioApi = {
+  criar: (okaId: number, tema: string, duracaoSegundos: number) =>
+    requisitar<Desafio>('/desafios', {
+      method: 'POST',
+      body: { oka_id: okaId, tema, duracao_segundos: duracaoSegundos },
+    }),
+
+  // Serve tanto pro aluno (vê null se não tem desafio rolando/já acabou)
+  // quanto pro professor (vê o mais recente mesmo depois do prazo, pra
+  // poder corrigir).
+  ativoDaOka: (okaId: number) => requisitar<Desafio | null>(`/desafios/ativo/${okaId}`),
+
+  enviarDesenho: (desafioId: number, imagem: string) =>
+    requisitar<DesenhoEnviado>(`/desafios/${desafioId}/enviar`, { method: 'POST', body: { imagem } }),
+
+  listarDesenhos: (desafioId: number) => requisitar<DesenhoEnviado[]>(`/desafios/${desafioId}/desenhos`),
+
+  darNota: (desenhoId: number, nota: number) =>
+    requisitar<DesenhoEnviado>(`/desenhos/${desenhoId}/nota`, { method: 'POST', body: { nota } }),
 }

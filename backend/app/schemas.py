@@ -274,6 +274,50 @@ class MensagemChatOut(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Desafio de Desenho
+# ---------------------------------------------------------------------------
+
+
+class DesafioCreate(BaseModel):
+    oka_id: int
+    tema: str = Field(min_length=1, max_length=200)
+    duracao_segundos: int = Field(ge=10, le=3600)
+
+
+class DesafioOut(BaseModel):
+    id: int
+    professor_id: int
+    oka_id: int
+    tema: str
+    duracao_segundos: int
+    criado_em: datetime
+    ativo: bool
+
+    # Calculados na hora (não são coluna) — ver routers/desafios.py.
+    tempo_restante_segundos: int
+    ja_enviei: bool = False
+
+
+class DesenhoEnviarPayload(BaseModel):
+    imagem: str = Field(min_length=1, max_length=2_000_000)
+
+
+class DesenhoOut(BaseModel):
+    id: int
+    desafio_id: int
+    aluno_id: int
+    aluno_nome: str
+    imagem: str
+    enviado_em: datetime
+    nota: int | None
+    itas_concedidos: int | None
+
+
+class NotaDesenhoPayload(BaseModel):
+    nota: int = Field(ge=0, le=10)
+
+
+# ---------------------------------------------------------------------------
 # Notas — o boletim
 # ---------------------------------------------------------------------------
 

@@ -254,3 +254,53 @@ class ProgressoAluno(Base):
     # Gancho futuro: dá pra cruzar isso com conteudos/temas/usuarios.oka_id
     # pra calcular interesses predominantes por Oka — sempre agregado,
     # nunca por aluno (mesmo princípio do Reko).
+
+
+# ---------------------------------------------------------------------------
+# Desafio de Desenho — o quadro/cavalete da ilha do professor
+# ---------------------------------------------------------------------------
+
+
+class DesafioDesenho(Base):
+    """Um desafio de desenho que o professor ativa pra própria Oka (só um
+    "ativo" por vez — routers/desafios.py desativa o anterior ao criar um
+    novo). Usa datetime.utcnow() (não server_default=func.now()) de
+    propósito, mesmo motivo do PresencaIlha: o cronômetro do aluno é
+    calculado comparando direto com utcnow() no backend (tempo_restante_segundos
+    em schemas.DesafioOut), então precisa ser a mesma hora dos dois lados."""
+
+    __tablename__ = "desafios_desenho"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    professor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    oka_id: Mapped[int] = mapped_column(ForeignKey("okas.id"), index=True)
+    tema: Mapped[str] = mapped_column(String(200))
+    duracao_segundos: Mapped[int] = mapped_column(Integer)
+    criado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    ativo: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class DesenhoEnviado(Base):
+    """Um desenho enviado por um aluno pra um DesafioDesenho — no máximo um
+    por (desafio, aluno). `nota`/`itas_concedidos` ficam nulos até o
+    professor corrigir (routers/desafios.py); os Itás concedidos não são
+    creditados num saldo à parte, só somados em routers/macu.py::_calcular_itas
+    (mesmo princípio derivado dos outros Itás — ver comentário lá)."""
+
+    __tablename__ = "desenhos_enviados"
+    __table_args__ = (
+        UniqueConstraint("desafio_id", "aluno_id", name="uq_desenho_desafio_aluno"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    desafio_id: Mapped[int] = mapped_column(ForeignKey("desafios_desenho.id"), index=True)
+    aluno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+
+    # Data URL PNG base64 — sem Storage configurado no projeto (ver
+    # routers/desafios.py), então guarda direto como texto, mesmo padrão de
+    # MacuAvatar.avatar_config.
+    imagem: Mapped[str] = mapped_column(Text)
+
+    enviado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    nota: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    itas_concedidos: Mapped[int | None] = mapped_column(Integer, nullable=True)

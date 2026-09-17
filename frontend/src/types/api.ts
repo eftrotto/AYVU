@@ -232,3 +232,31 @@ export interface Nota extends NotaPayload {
   id: number
   aluno_id: number
 }
+
+// ---------------------------------------------------------------------------
+// Desafio de Desenho — o quadro interativo na ilha do professor
+// ---------------------------------------------------------------------------
+
+export interface Desafio {
+  id: number
+  professor_id: number
+  oka_id: number
+  tema: string
+  duracao_segundos: number
+  criado_em: string
+  ativo: boolean
+  // Calculados no backend a cada consulta — nunca confiar só no timer local.
+  tempo_restante_segundos: number
+  ja_enviei: boolean
+}
+
+export interface DesenhoEnviado {
+  id: number
+  desafio_id: number
+  aluno_id: number
+  aluno_nome: string
+  imagem: string // data URL PNG base64
+  enviado_em: string
+  nota: number | null
+  itas_concedidos: number | null
+}

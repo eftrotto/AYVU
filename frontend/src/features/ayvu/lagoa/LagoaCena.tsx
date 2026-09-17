@@ -6,6 +6,7 @@ import { ApiError, ayvuApi, macuApi, okaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
 import { NivelBar } from '../../macu/NivelBar'
+import { DesafioAtivoModal } from './DesafioAtivoModal'
 import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
 import { OutrosMacusNaIlha } from './OutrosMacusNaIlha'
@@ -443,6 +444,8 @@ export function LagoaCena() {
         animate={{ opacity: fase === 'saindo' ? 1 : 0 }}
         transition={{ duration: 0.75, ease: 'easeIn' }}
       />
+
+      {usuario?.oka_id != null && <DesafioAtivoModal okaId={usuario.oka_id} />}
     </div>
   )
 }
