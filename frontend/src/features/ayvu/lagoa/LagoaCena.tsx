@@ -316,27 +316,29 @@ export function LagoaCena() {
           }}
         >
           <div
-            className={`absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg ${
+            className={`absolute inset-0 rounded-[50%] shadow-lg ${
               ehNoite ? 'bg-gradient-to-b from-[#6b6248] to-[#4a4433]' : 'bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]'
             }`}
           />
+          {/* Grama fica inteira DENTRO da areia (margem visível em todo o
+              contorno) pra ler como uma ilha só, não dois discos empilhados. */}
           <div
             ref={gramaRef}
-            className={`absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] ${
+            className={`absolute inset-x-[13%] top-[10%] bottom-[16%] rounded-[50%] ${
               ehNoite ? 'bg-gradient-to-b from-[#2c4a2a] to-[#1e3620]' : 'bg-gradient-to-b from-[#5f9448] to-[#3f6c32]'
             }`}
           />
           <span
             className={`absolute h-3 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
-            style={{ left: '22%', top: '8%', transform: 'rotate(-12deg)' }}
+            style={{ left: '24%', top: '18%', transform: 'rotate(-12deg)' }}
           />
           <span
             className={`absolute h-3.5 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
-            style={{ left: '28%', top: '2%', transform: 'rotate(6deg)' }}
+            style={{ left: '30%', top: '12%', transform: 'rotate(6deg)' }}
           />
           <span
             className={`absolute h-2.5 w-1.5 rounded-full ${ehNoite ? 'bg-[#233f22]' : 'bg-[#3f6c32]'}`}
-            style={{ right: '18%', top: '10%', transform: 'rotate(14deg)' }}
+            style={{ right: '20%', top: '20%', transform: 'rotate(14deg)' }}
           />
           <span
             className={`absolute h-3 w-4 rounded-full ${ehNoite ? 'bg-[#5c5847]' : 'bg-[#9a8b63]'}`}

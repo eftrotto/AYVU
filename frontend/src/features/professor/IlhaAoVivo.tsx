@@ -143,10 +143,12 @@ export function IlhaAoVivo({ okaId }: IlhaAoVivoProps) {
         </div>
 
         <div className="absolute" style={{ left: '14%', top: '55%', width: '72%', height: '32%' }}>
-          <div className="absolute inset-x-0 bottom-0 h-[62%] rounded-[50%] shadow-lg bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]" />
+          <div className="absolute inset-0 rounded-[50%] shadow-lg bg-gradient-to-b from-[#e3cd94] to-[#c2a35f]" />
+          {/* Grama dentro da areia (mesma proporção de LagoaCena.tsx) pra ler
+              como uma ilha só. */}
           <div
             ref={gramaRef}
-            className="absolute inset-x-[10%] top-0 h-[68%] rounded-[50%] bg-gradient-to-b from-[#5f9448] to-[#3f6c32]"
+            className="absolute inset-x-[13%] top-[10%] bottom-[16%] rounded-[50%] bg-gradient-to-b from-[#5f9448] to-[#3f6c32]"
           />
 
           <Fogueira nivel={nivelFogueira} />
