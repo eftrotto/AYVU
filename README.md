@@ -36,17 +36,17 @@ Cada aluno tem sua própria Oka (casa, em referência à moradia tradicional ind
 
 ### Ilha do professor - a turma
 O professor cria uma ilha (turma) e compartilha um código de convite; o aluno entra digitando esse código. Dentro dela:
-- **Presença ao vivo** — todo mundo que está na ilha agora aparece se movendo em tempo real (via polling), incluindo o próprio professor, representado por um Pajé.
-- **Desafio de Desenho** — o professor lança um tema com um tempo limite; os alunos desenham num canvas e enviam; o professor corrige e atribui uma nota, que também concede Itás.
-- **Boletim** — o professor lança notas por disciplina/prova; o aluno acompanha as suas.
-- **Chat da turma** — conversa em grupo entre os alunos da mesma ilha, supervisionada pelo professor.
-- **Painel de bem-estar** — visão agregada (nunca individual bruta) do Reko da turma, com sinal de atenção por aluno baseado em padrões, não em números expostos.
+- **Presença ao vivo** - todo mundo que está na ilha agora aparece se movendo em tempo real (via polling), incluindo o próprio professor, representado por um Pajé.
+- **Desafio de Desenho** - o professor lança um tema com um tempo limite; os alunos desenham num canvas e enviam; o professor corrige e atribui uma nota, que também concede Itás.
+- **Boletim** - o professor lança notas por disciplina/prova; o aluno acompanha as suas.
+- **Chat da turma** - conversa em grupo entre os alunos da mesma ilha, supervisionada pelo professor.
+- **Painel de bem-estar** - visão agregada (nunca individual bruta) do Reko da turma, com sinal de atenção por aluno baseado em padrões, não em números expostos.
 
-### Itás - a moeda que não dá pra burlar
+### Itás 
 Itás são a "moeda" do aluno, mas não existe um saldo guardado em lugar nenhum: ela é sempre **calculada na hora**, somando atividade real (check-in do Reko, conteúdo concluído no Ayvu, pesquisa feita, nota dada num Desafio de Desenho) e subtraindo o que já foi gasto na Vendinha. Não tem como ganhar Itás sem participar de verdade, nem gastar mais do que se tem.
 
 ### Vendinha - lojinha da ilha do aluno
-Uma barraquinha na própria ilha do aluno (separada da ilha do professor) onde ele gasta Itás pra desbloquear personalizações do Macu (cores de roupa, óculos de sol) e da Oka (parede, chão, item central). Comprar já equipa na hora — sem passo extra — e a posse fica salva permanentemente no banco.
+Uma barraquinha na própria ilha do aluno (separada da ilha do professor) onde ele gasta Itás pra desbloquear personalizações do Macu (cores de roupa, óculos de sol) e da Oka. Comprar já equipa na hora, sem passo extra, e a posse fica salva permanentemente no banco.
 
 ## O diferencial
 
