@@ -6,8 +6,10 @@ import { ApiError, ayvuApi, macuApi, okaApi, presencaApi } from '../../../lib/ap
 import { useAuth } from '../../auth/AuthContext'
 import { Cavalete } from '../../ilha/Cavalete'
 import { Fogueira } from '../../ilha/Fogueira'
+import { Vendinha } from '../../ilha/Vendinha'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
 import { NivelBar } from '../../macu/NivelBar'
+import { VendinhaModal } from '../../loja/VendinhaModal'
 import { DesafioAtivoModal } from './DesafioAtivoModal'
 import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
@@ -97,6 +99,7 @@ export function LagoaCena() {
   const numAlunosPresentes = 1 + (presencaQuery.data?.filter((jogador) => jogador.tipo === 'aluno').length ?? 0)
   const nivelFogueira = Math.min(3, numAlunosPresentes) as 0 | 1 | 2 | 3
 
+  const [mostrarVendinha, setMostrarVendinha] = useState(false)
   const [mostrarEntrarOka, setMostrarEntrarOka] = useState(false)
   const [codigoOka, setCodigoOka] = useState('')
   const entrarOka = useMutation({
@@ -378,6 +381,16 @@ export function LagoaCena() {
             </div>
           )}
 
+          <Vendinha
+            escala={ESCALA_DECORACAO_PROFESSOR}
+            onClick={(e) => {
+              // Sem isso, o clique também dispara o "andar até aqui" do
+              // ilhaRef pai (mesmo padrão do onClickQuadro em Cavalete.tsx).
+              e.stopPropagation()
+              setMostrarVendinha(true)
+            }}
+          />
+
           {macuVisivel && (
             <MacuNaIlha
               ref={macuHandleRef}
@@ -479,6 +492,8 @@ export function LagoaCena() {
       />
 
       {usuario?.oka_id != null && <DesafioAtivoModal okaId={usuario.oka_id} />}
+
+      <VendinhaModal aberta={mostrarVendinha} aoFechar={() => setMostrarVendinha(false)} />
     </div>
   )
 }

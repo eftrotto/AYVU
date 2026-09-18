@@ -6,10 +6,12 @@ import {
   type LoginResponse,
   type MacuAvatar,
   type CadastroPayload,
+  type Compra,
   type Desafio,
   type DesenhoEnviado,
   type EntrarOkaResponse,
   type Itas,
+  type ItemLoja,
   type MensagemChat,
   type Nota,
   type Presenca,
@@ -266,4 +268,17 @@ export const desafioApi = {
 
   darNota: (desenhoId: number, nota: number) =>
     requisitar<DesenhoEnviado>(`/desenhos/${desenhoId}/nota`, { method: 'POST', body: { nota } }),
+}
+
+// ---------------------------------------------------------------------------
+// Loja (Vendinha) — a lojinha na ilha do aluno
+// ---------------------------------------------------------------------------
+
+export const lojaApi = {
+  listarItens: () => requisitar<ItemLoja[]>('/loja/itens'),
+
+  minhasCompras: () => requisitar<string[]>('/loja/minhas-compras'),
+
+  comprar: (itemId: string) =>
+    requisitar<Compra>('/loja/comprar', { method: 'POST', body: { item_id: itemId } }),
 }

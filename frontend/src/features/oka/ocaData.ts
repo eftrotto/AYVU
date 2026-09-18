@@ -23,7 +23,7 @@ export const ITENS_CENTRAIS = [
   { valor: 'fogueira', rotulo: 'Fogueira', emoji: '🔥' },
   { valor: 'cesto', rotulo: 'Cesto', emoji: '🧺' },
   { valor: 'banco', rotulo: 'Banco', emoji: '🪵' },
-  { valor: 'planta', rotulo: 'Planta', emoji: '🪴' },
+  { valor: 'planta', rotulo: 'Vaso de planta', emoji: '🪴' },
 ] as const
 
 export type ItemCentral = (typeof ITENS_CENTRAIS)[number]['valor']

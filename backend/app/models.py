@@ -304,3 +304,29 @@ class DesenhoEnviado(Base):
     enviado_em: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     nota: Mapped[int | None] = mapped_column(Integer, nullable=True)
     itas_concedidos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+# ---------------------------------------------------------------------------
+# Vendinha — loja simples na ilha do aluno
+# ---------------------------------------------------------------------------
+
+
+class ItemComprado(Base):
+    """Um item do catálogo fixo (ver routers/loja.py) que o aluno já
+    comprou — no máximo um registro por (aluno, item), é posse permanente,
+    não um "carrinho". `preco_pago` fica gravado aqui (não recalculado
+    depois) pra o histórico não mudar se o preço do item for ajustado no
+    catálogo futuramente; quem soma o total gasto pra saber quanto Itá o
+    aluno ainda tem é app/itas.py::calcular_itas (mesmo princípio
+    derivado dos outros Itás — nada de saldo guardado à parte)."""
+
+    __tablename__ = "itens_comprados"
+    __table_args__ = (
+        UniqueConstraint("aluno_id", "item_id", name="uq_item_comprado_aluno_item"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    aluno_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id"), index=True)
+    item_id: Mapped[str] = mapped_column(String(60))
+    preco_pago: Mapped[int] = mapped_column(Integer)
+    comprado_em: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

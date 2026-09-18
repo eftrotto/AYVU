@@ -1,59 +1,46 @@
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
-from sqlalchemy import func, select
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
 from ..deps import exigir_aluno, exigir_professor
+from ..itas import calcular_itas
 
 router = APIRouter(prefix="/macu", tags=["macu"])
 
-# Itás (moeda/pontuação do aluno, referência a "itá" = pedra/semente em
-# tupi) não são um contador guardado à parte — são derivados da atividade
-# que já existe (check-in do Reko, conteúdo concluído no Ayvu, pesquisa
-# feita, desenho corrigido no Desafio de Desenho), então não tem como
-# "burlar" ganhando Itás sem realmente participar, e não precisa de uma
-# tabela nova só pra isso. Todo aluno recém-cadastrado começa em 0 porque
-# ainda não tem nenhuma dessas atividades registrada.
-_ITAS_POR_CHECKIN_REKO = 10
-_ITAS_POR_CONTEUDO_CONCLUIDO = 5
-_ITAS_POR_PESQUISA = 2
+# Campos do avatar que precisam ter sido comprados na vendinha antes de
+# poder ser salvos — ver routers/loja.py pro catálogo/preços. Os valores
+# GRÁTIS por padrão (AVATAR_PADRAO no frontend) ficam de fora e sempre
+# passam (ver _validar_posse abaixo).
+_CAMPOS_VENDIVEIS = ["shirtColor", "pantsColor", "shoeColor", "usaOculos"]
 
 
-def _calcular_itas(db: Session, aluno_id: int) -> schemas.ItasOut:
-    total_checkins = db.scalar(
-        select(func.count(models.RekoCheckin.id)).where(models.RekoCheckin.user_id == aluno_id)
-    )
-    total_concluidos = db.scalar(
-        select(func.count(models.ProgressoAluno.id)).where(
-            models.ProgressoAluno.user_id == aluno_id,
-            models.ProgressoAluno.concluido.is_(True),
-        )
-    )
-    total_pesquisas = db.scalar(
-        select(func.count(models.PesquisaAyvu.id)).where(models.PesquisaAyvu.user_id == aluno_id)
-    )
-    # itas_concedidos só é preenchido quando o professor corrige o desenho
-    # (routers/desafios.py::dar_nota) — antes disso fica nulo e não entra
-    # na soma.
-    total_itas_desenhos = db.scalar(
-        select(func.sum(models.DesenhoEnviado.itas_concedidos)).where(
-            models.DesenhoEnviado.aluno_id == aluno_id,
-            models.DesenhoEnviado.itas_concedidos.isnot(None),
-        )
-    )
+def _validar_posse_do_avatar(db: Session, aluno_id: int, avatar_config: dict) -> None:
+    # Import local só pra manter o catálogo/preços inteiros dentro de
+    # routers/loja.py (não duplicado aqui) sem criar um import no topo do
+    # arquivo que só é usado dentro desta função.
+    from .loja import ids_comprados, item_esta_liberado
 
-    itas_total = (
-        total_checkins * _ITAS_POR_CHECKIN_REKO
-        + total_concluidos * _ITAS_POR_CONTEUDO_CONCLUIDO
-        + total_pesquisas * _ITAS_POR_PESQUISA
-        + (total_itas_desenhos or 0)
-    )
-
-    return schemas.ItasOut(itas_total=itas_total)
+    comprados = None
+    for campo in _CAMPOS_VENDIVEIS:
+        if campo not in avatar_config:
+            continue
+        valor = avatar_config[campo]
+        if campo == "usaOculos":
+            if not valor:
+                continue  # desligar o acessório é sempre permitido, de graça
+            valor = "true"
+        if comprados is None:
+            comprados = ids_comprados(db, aluno_id)
+        if not item_esta_liberado(campo, valor, comprados):
+            raise HTTPException(
+                status_code=400,
+                detail="Você ainda não comprou esse item — dá uma olhada na vendinha da sua ilha!",
+            )
 
 
 @router.get("/itas", response_model=schemas.ItasOut)
@@ -61,7 +48,7 @@ def obter_itas(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
-    return _calcular_itas(db, aluno.id)
+    return calcular_itas(db, aluno.id)
 
 
 def _avatar_padrao(user_id: int) -> schemas.MacuAvatarOut:
@@ -95,6 +82,8 @@ def salvar_avatar(
     db: Session = Depends(get_db),
     aluno: models.Usuario = Depends(exigir_aluno),
 ):
+    _validar_posse_do_avatar(db, aluno.id, entrada.avatar_config)
+
     registro = db.execute(
         select(models.MacuAvatar).where(models.MacuAvatar.user_id == aluno.id)
     ).scalar_one_or_none()

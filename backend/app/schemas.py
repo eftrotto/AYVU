@@ -318,6 +318,30 @@ class NotaDesenhoPayload(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Vendinha — loja simples na ilha do aluno
+# ---------------------------------------------------------------------------
+
+
+class ItemLojaOut(BaseModel):
+    id: str
+    tipo: str  # "macu" | "oka"
+    campo: str  # ex: "shirtColor", "cor_parede", "item_central"
+    valor: str
+    preco: int
+    rotulo: str
+
+
+class CompraPayload(BaseModel):
+    item_id: str
+
+
+class CompraOut(BaseModel):
+    item_id: str
+    preco_pago: int
+    itas_restantes: int
+
+
+# ---------------------------------------------------------------------------
 # Notas — o boletim
 # ---------------------------------------------------------------------------
 

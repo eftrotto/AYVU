@@ -19,6 +19,7 @@ export default defineConfig({
       '/notas': 'http://127.0.0.1:8000',
       '/desafios': 'http://127.0.0.1:8000',
       '/desenhos': 'http://127.0.0.1:8000',
+      '/loja': 'http://127.0.0.1:8000',
     },
   },
 })

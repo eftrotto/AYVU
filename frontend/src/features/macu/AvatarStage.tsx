@@ -107,6 +107,38 @@ export function AvatarStage({
           tamanho,
         )
       }
+
+      // Óculos de sol — acessório comprável na vendinha, não é uma camada
+      // LPC (não existe esse sprite no catálogo), então é desenhado por
+      // cima igual os adornos do pajé (ver PajeStage.tsx): só de frente
+      // (linha === LPC_FRAME_ROW), porque a posição dos olhos muda de
+      // lugar nas outras direções e não tem como acompanhar sem o mesmo
+      // trabalho de "só de frente" já usado lá.
+      if (config.usaOculos && linha === LPC_FRAME_ROW) {
+        const larguraLente = 6.2
+        const alturaLente = 4.6
+        const raio = 1.6
+        const centroY = 26.5
+        ctx.fillStyle = '#20201f'
+        for (const cx of [28.3, 35.7]) {
+          ctx.beginPath()
+          ctx.roundRect(
+            (cx - larguraLente / 2) * escala,
+            (centroY - alturaLente / 2) * escala,
+            larguraLente * escala,
+            alturaLente * escala,
+            raio * escala,
+          )
+          ctx.fill()
+        }
+        ctx.fillRect(31.2 * escala, (centroY - 0.7) * escala, 1.6 * escala, 1.4 * escala) // ponte
+        ctx.fillStyle = 'rgba(255,255,255,0.25)'
+        for (const cx of [27, 34.4]) {
+          ctx.beginPath()
+          ctx.roundRect(cx * escala, (centroY - 1.4) * escala, 1.6 * escala, 1 * escala, 0.5 * escala)
+          ctx.fill()
+        }
+      }
     })
 
     return () => {

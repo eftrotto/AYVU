@@ -76,6 +76,9 @@ export interface MacuAvatarConfig {
   shirtColor: string
   pantsColor: string
   shoeColor: string
+  // Acessório opcional, comprável na vendinha — desenhado por cima do
+  // sprite em AvatarStage.tsx, não faz parte das camadas LPC.
+  usaOculos?: boolean
 }
 
 export interface MacuAvatar {
@@ -259,4 +262,23 @@ export interface DesenhoEnviado {
   enviado_em: string
   nota: number | null
   itas_concedidos: number | null
+}
+
+// ---------------------------------------------------------------------------
+// Loja (Vendinha) — a lojinha na ilha do aluno
+// ---------------------------------------------------------------------------
+
+export interface ItemLoja {
+  id: string
+  tipo: 'macu' | 'oka'
+  campo: string
+  valor: string
+  preco: number
+  rotulo: string
+}
+
+export interface Compra {
+  item_id: string
+  preco_pago: number
+  itas_restantes: number
 }

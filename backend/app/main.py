@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import models
 from .database import Base, engine
-from .routers import auth, ayvu, desafios, macu, notas, oca, okas, reko
+from .routers import auth, ayvu, desafios, loja, macu, notas, oca, okas, reko
 
 logger = logging.getLogger("ayvu")
 
@@ -52,6 +52,7 @@ app.include_router(oca.router)
 app.include_router(notas.router)
 app.include_router(desafios.router_desafios)
 app.include_router(desafios.router_desenhos)
+app.include_router(loja.router)
 
 class SPAStaticFiles(StaticFiles):
     """Sem fallback pro index.html, um F5 em /aluno/ayvu/3 (rota do React
