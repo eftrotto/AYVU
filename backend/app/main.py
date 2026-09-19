@@ -40,7 +40,14 @@ app.add_middleware(
 @app.exception_handler(Exception)
 async def erro_nao_tratado(request: Request, exc: Exception):
     logger.exception("Erro não tratado em %s %s", request.method, request.url.path)
-    return JSONResponse(status_code=500, content={"detail": "Erro interno. Tente novamente."})
+    # Esse handler roda por fora do CORSMiddleware, então sem o cabeçalho
+    # aqui o navegador (front e back em domínios diferentes) descarta o 500
+    # e o usuário vê "não foi possível falar com o servidor" em vez do erro.
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro interno. Tente novamente."},
+        headers={"Access-Control-Allow-Origin": "*"},
+    )
 
 
 app.include_router(auth.router)
