@@ -12,7 +12,7 @@ export function ComoEstudarPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-dvh bg-[radial-gradient(ellipse_at_top,_#1c4b53_0%,_#fbf1e6_62%)]"
+      className="min-h-dvh bg-[radial-gradient(ellipse_at_top,_#5fe0d4_0%,_#22a6bd_42%,_#0b3f6b_100%)]"
     >
       <div className="mx-auto max-w-4xl px-5 py-10">
         <motion.button
@@ -21,7 +21,7 @@ export function ComoEstudarPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mb-8 text-sm font-bold text-white/80 hover:text-white"
+          className="mb-8 text-sm font-bold text-white/90 hover:text-white"
         >
           ‹ Pesquisar outra coisa
         </motion.button>
@@ -32,11 +32,11 @@ export function ComoEstudarPage() {
           transition={{ delay: 0.15, duration: 0.5 }}
           className="mb-9 text-center"
         >
-          <span className="mb-3 inline-block rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold text-white backdrop-blur">
+          <span className="mb-3 inline-block rounded-full bg-white/45 px-4 py-1.5 text-sm font-semibold text-[#0e3f43] backdrop-blur">
             {termo}
           </span>
-          <h1 className="text-2xl font-bold text-text sm:text-3xl">Como você quer estudar isso?</h1>
-          <p className="mt-1 text-sm text-text-soft">Escolha o jeito que combina com você.</p>
+          <h1 className="text-2xl font-bold text-[#0e3f43] sm:text-3xl">Como você quer estudar isso?</h1>
+          <p className="mt-1 text-sm text-[#0e3f43]/70">Escolha o jeito que combina com você.</p>
         </motion.header>
 
         <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">

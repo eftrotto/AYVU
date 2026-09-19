@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ApiError, ayvuApi, macuApi, okaApi, presencaApi } from '../../../lib/apiClient'
+import { ApiError, ayvuApi, macuApi, ocaPessoalApi, okaApi, presencaApi } from '../../../lib/apiClient'
 import { useAuth } from '../../auth/AuthContext'
-import { Cavalete } from '../../ilha/Cavalete'
 import { Fogueira } from '../../ilha/Fogueira'
+import { MiniOka } from '../../ilha/MiniOka'
 import { Vendinha } from '../../ilha/Vendinha'
 import { AVATAR_PADRAO } from '../../macu/lpcData'
 import { NivelBar } from '../../macu/NivelBar'
@@ -15,11 +15,12 @@ import { MacuNaIlha, type MacuNaIlhaHandle } from './MacuNaIlha'
 import { Ondulacao } from './Ondulacao'
 import { OutrosMacusNaIlha } from './OutrosMacusNaIlha'
 
-// A ilha do aluno começa com um coqueiro decorativo; depois que ele entra
-// numa ilha de professor (usuario.oka_id != null), passa a ver a MESMA
-// fogueira + cavalete da ilha do professor (ver IlhaAoVivo.tsx) em vez do
-// coqueiro — reforça que agora ele está "na ilha do professor", não mais
-// só no próprio lago. Fogueira/Cavalete são maiores aqui (escala) porque
+// A fogueira (centro), a Vendinha (canto esquerdo) e uma miniatura clicável
+// da Oka pessoal (canto direito) ficam sempre visíveis na ilha do aluno. O
+// Cavalete (quadro) é só do professor — não aparece aqui (ver
+// IlhaAoVivo.tsx); o aluno ainda vê o Desafio de Desenho normalmente
+// quando o professor cria um, via DesafioAtivoModal abaixo, que não
+// depende do quadro estar na tela. Todas são maiores aqui (escala) porque
 // essa cena ocupa a tela inteira, diferente do card compacto do professor.
 const ESCALA_DECORACAO_PROFESSOR = 2.4
 
@@ -63,6 +64,9 @@ export function LagoaCena() {
   const queryClient = useQueryClient()
   const avatarQuery = useQuery({ queryKey: ['macu', 'avatar'], queryFn: macuApi.obterAvatar })
   const config = { ...AVATAR_PADRAO, ...avatarQuery.data?.avatar_config }
+  // Só pra colorir a miniatura da Oka (MiniOka) com a parede que o aluno
+  // já comprou/escolheu — mesma queryKey que OkaPage/VendinhaModal usam.
+  const ocaQuery = useQuery({ queryKey: ['oca'], queryFn: ocaPessoalApi.obter })
 
   // A ilha que o aluno já entrou (null se nenhuma) — só pra mostrar o
   // código de volta pra ele no botão que antes dizia "Entrar numa ilha".
@@ -93,10 +97,10 @@ export function LagoaCena() {
     refetchInterval: emCena ? 1500 : false,
     enabled: usuario?.oka_id != null && emCena,
   })
-  // +1 = o próprio aluno, que também conta como "gente na ilha" (por isso a
-  // fogueira nunca aparece apagada na visão do aluno — só na do professor,
-  // que fica de fora dessa contagem).
-  const numAlunosPresentes = 1 + (presencaQuery.data?.filter((jogador) => jogador.tipo === 'aluno').length ?? 0)
+  // O próprio aluno NÃO conta como "gente na ilha" (mesma contagem da visão
+  // do professor, ver IlhaAoVivo.tsx) — a fogueira começa apagada e só
+  // acende com gente de verdade entrando na ilha.
+  const numAlunosPresentes = presencaQuery.data?.filter((jogador) => jogador.tipo === 'aluno').length ?? 0
   const nivelFogueira = Math.min(3, numAlunosPresentes) as 0 | 1 | 2 | 3
 
   const [mostrarVendinha, setMostrarVendinha] = useState(false)
@@ -160,13 +164,6 @@ export function LagoaCena() {
               className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
             >
               🧑‍🎨 <span className="hidden sm:inline">Meu Macu</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/aluno/oka')}
-              className="flex items-center gap-1.5 rounded-full border border-white/30 bg-white/15 px-2.5 py-1.5 text-xs font-bold text-white backdrop-blur hover:bg-white/25 sm:px-4 sm:py-2 sm:text-sm"
-            >
-              🛖 <span className="hidden sm:inline">Oka</span>
             </button>
             <button
               type="button"
@@ -345,51 +342,28 @@ export function LagoaCena() {
             style={{ left: '12%', bottom: '18%' }}
           />
 
-          {usuario?.oka_id != null ? (
-            <>
-              <Fogueira ref={arvoreRef} nivel={nivelFogueira} escala={ESCALA_DECORACAO_PROFESSOR} />
-              <Cavalete escala={ESCALA_DECORACAO_PROFESSOR} />
-            </>
-          ) : (
-            <div ref={arvoreRef} className="absolute z-[1]" style={{ left: '8%', bottom: '28%', width: 154, height: 210 }}>
-              <div
-                className={`absolute bottom-0 left-[30%] origin-bottom rounded-full ${
-                  ehNoite ? 'bg-[#3a2a1c]' : 'bg-[#7a5636]'
-                }`}
-                style={{ width: 17, height: '72%', transform: 'rotate(-10deg)' }}
-              />
-              {[-65, -32, -2, 28, 58].map((angulo) => (
-                <span
-                  key={angulo}
-                  className="absolute rounded-[50%] border border-black/30 bg-[#2f7a2a]"
-                  style={{
-                    left: '38%',
-                    top: '26%',
-                    width: 73,
-                    height: 20,
-                    transformOrigin: '0% 50%',
-                    transform: `rotate(${angulo}deg)`,
-                  }}
-                />
-              ))}
-              <span
-                className={`absolute h-4 w-4 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
-                style={{ left: '33%', top: '31%' }}
-              />
-              <span
-                className={`absolute h-4 w-4 rounded-full ${ehNoite ? 'bg-[#2a1c12]' : 'bg-[#5c3d22]'}`}
-                style={{ left: '41%', top: '34%' }}
-              />
-            </div>
-          )}
+          {/* Sem ref aqui de propósito: sem elemento nenhum associado ao
+              arvoreRef, a zona de exclusão de colisão do MacuNaIlha nunca é
+              calculada (fica em -9999,-9999) — o aluno anda por cima da
+              fogueira à vontade, sem "parede invisível". */}
+          <Fogueira nivel={nivelFogueira} escala={ESCALA_DECORACAO_PROFESSOR} />
 
           <Vendinha
-            escala={ESCALA_DECORACAO_PROFESSOR}
+            escala={ESCALA_DECORACAO_PROFESSOR * 0.8}
             onClick={(e) => {
               // Sem isso, o clique também dispara o "andar até aqui" do
               // ilhaRef pai (mesmo padrão do onClickQuadro em Cavalete.tsx).
               e.stopPropagation()
               setMostrarVendinha(true)
+            }}
+          />
+
+          <MiniOka
+            corParede={ocaQuery.data?.cor_parede}
+            escala={ESCALA_DECORACAO_PROFESSOR}
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate('/aluno/oka')
             }}
           />
 

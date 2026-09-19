@@ -59,7 +59,10 @@ export const Fogueira = forwardRef<HTMLDivElement, FogueiraProps>(function Fogue
   return (
     <div
       ref={ref}
-      className="absolute z-[1]"
+      // pointer-events-none: puramente decorativa, sem onClick — sem isso
+      // ela "rouba" o clique de quem estiver atrás (ver MiniOka.tsx, que
+      // fica atrás da fogueira nesse mesmo ponto).
+      className="pointer-events-none absolute z-[1]"
       style={{ left: '50%', top: '34%', width: 70, height: 36, transform: `translate(-50%, -50%) scale(${escala})` }}
     >
       <div
